@@ -3,6 +3,7 @@ package my;
 import gridworld.AbstractGridEnvironment;
 import gridworld.AbstractGridEnvironment.GridAgentData;
 import gridworld.GridOrientation;
+import tester.DummyAgent;
 import tester.Tester;
 
 /**
@@ -23,10 +24,10 @@ public class MyTester extends Tester
 	public MyTester()
 	{
 		env = new MyEnvironment();
-//		env.addAgent(new GridAgentData(new DummyAgent(), ((AbstractGridEnvironment) env).getBottomLeft(),
-//				GridOrientation.NORTH));
-		env.addAgent(new GridAgentData(new MyAgent(), ((AbstractGridEnvironment) env).getBottomLeft(),
+		env.addAgent(new GridAgentData(new DummyAgent(), ((AbstractGridEnvironment) env).getBottomLeft(),
 				GridOrientation.NORTH));
+//		env.addAgent(new GridAgentData(new MyAgent(), ((AbstractGridEnvironment) env).getBottomLeft(),
+//				GridOrientation.NORTH));
 		
 		
 		System.out.println(env.printToString());

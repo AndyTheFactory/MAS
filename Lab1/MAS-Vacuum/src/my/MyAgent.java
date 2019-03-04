@@ -3,6 +3,8 @@ package my;
 import base.Action;
 import base.Agent;
 import base.Perceptions;
+import gridworld.GridOrientation;
+import gridworld.GridRelativeOrientation;
 
 /**
  * Your implementation of a reactive cleaner agent.
@@ -15,7 +17,53 @@ public class MyAgent implements Agent
 	public Action response(Perceptions perceptions)
 	{
 		// TODO Auto-generated method stub
-		return null;
+		MyEnvironment.MyAgentPerceptions percept = (MyEnvironment.MyAgentPerceptions) perceptions;
+		System.out.println("Agent sees current tile is " + (percept.isOverJtile() ? "dirty" : "clean")
+				+ "; current orientation is " + percept.getAbsoluteOrientation() + "; obstacles at: "
+				+ percept.getObstacles());
+		// // clean
+		if(percept.isOverJtile())
+			return MyEnvironment.MyAction.PICK;
+		// // turn
+		if(percept.getObstacles().contains(GridRelativeOrientation.FRONT)){                    
+                    if(percept.getAbsoluteOrientation()==GridOrientation.SOUTH )
+                        return MyEnvironment.MyAction.TURN_LEFT;             
+                    else
+                        return MyEnvironment.MyAction.TURN_RIGHT;             
+                }
+                if(percept.getAbsoluteOrientation()==GridOrientation.EAST ){
+                    if(percept.getObstacles().contains(GridRelativeOrientation.FRONT_LEFT)){ //North wall
+                        if (Math.random()>0.5)
+                            return MyEnvironment.MyAction.TURN_RIGHT;
+                        else
+                            return MyEnvironment.MyAction.FORWARD;
+                    }else{ // Obstacle when going north 
+                        if (!percept.getObstacles().contains(GridRelativeOrientation.LEFT))
+                            return MyEnvironment.MyAction.TURN_LEFT;                        
+                    }
+                }
+                if(percept.getAbsoluteOrientation()==GridOrientation.NORTH){
+                    if(percept.getObstacles().contains(GridRelativeOrientation.BACK_LEFT) &&
+                            !percept.getObstacles().contains(GridRelativeOrientation.BACK) &&
+                            !percept.getObstacles().contains(GridRelativeOrientation.LEFT))
+                                return MyEnvironment.MyAction.TURN_LEFT;
+                }
+
+                if(percept.getAbsoluteOrientation()==GridOrientation.WEST){
+                    if(percept.getObstacles().contains(GridRelativeOrientation.LEFT) &&
+                            !percept.getObstacles().contains(GridRelativeOrientation.RIGHT)) //North wall
+                                return MyEnvironment.MyAction.TURN_RIGHT;
+                }
+
+                if(percept.getAbsoluteOrientation()==GridOrientation.SOUTH){
+                    if(percept.getObstacles().contains(GridRelativeOrientation.BACK_RIGHT) &&
+                            !percept.getObstacles().contains(GridRelativeOrientation.BACK) &&
+                            !percept.getObstacles().contains(GridRelativeOrientation.RIGHT))
+                                return MyEnvironment.MyAction.TURN_RIGHT;
+                }
+
+                // forward
+		return MyEnvironment.MyAction.FORWARD;
 	}
 	
 	@Override
@@ -23,7 +71,7 @@ public class MyAgent implements Agent
 	{
 		// TODO Auto-generated method stub
 		// please use a single character
-		return "1";
+		return "M";
 	}
 	
 }

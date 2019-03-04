@@ -143,19 +143,12 @@ public class MyEnvironment extends AbstractGridEnvironment
                     Set<GridPosition> xt=getXtiles();
                     
                     Set<GridRelativeOrientation> obstacleOrientations=new HashSet<>();
-                    
-                    
-                    if (xt.contains(pos.getNeighborPosition(GridOrientation.NORTH)))
-                        obstacleOrientations.add(pos.getRelativeOrientation(ag.getOrientation(), pos.getNeighborPosition(GridOrientation.NORTH)));
-                    
-                    if (xt.contains(pos.getNeighborPosition(GridOrientation.EAST)))
-                        obstacleOrientations.add(pos.getRelativeOrientation(ag.getOrientation(),pos.getNeighborPosition(GridOrientation.EAST)));
-                    
-                    if (xt.contains(pos.getNeighborPosition(GridOrientation.SOUTH)))
-                        obstacleOrientations.add(pos.getRelativeOrientation(ag.getOrientation(),pos.getNeighborPosition(GridOrientation.SOUTH)));
-                    
-                    if (xt.contains(pos.getNeighborPosition(GridOrientation.WEST)))
-                        obstacleOrientations.add(pos.getRelativeOrientation(ag.getOrientation(),pos.getNeighborPosition(GridOrientation.WEST)));
+
+                    for(GridRelativeOrientation orientation: GridRelativeOrientation.values()){
+                        GridPosition neighbour=pos.getNeighborPosition(ag.getOrientation(),orientation);
+                        if (xt.contains(neighbour))
+                            obstacleOrientations.add(pos.getRelativeOrientation(ag.getOrientation(), neighbour));
+                    }
                     
                     MyAgentPerceptions perc=new MyAgentPerceptions(obstacleOrientations, 
                             isJunk, ag.getOrientation());

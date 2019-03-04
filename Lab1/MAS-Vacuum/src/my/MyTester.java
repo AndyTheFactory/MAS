@@ -24,10 +24,10 @@ public class MyTester extends Tester
 	public MyTester()
 	{
 		env = new MyEnvironment();
-		env.addAgent(new GridAgentData(new DummyAgent(), ((AbstractGridEnvironment) env).getBottomLeft(),
-				GridOrientation.NORTH));
-//		env.addAgent(new GridAgentData(new MyAgent(), ((AbstractGridEnvironment) env).getBottomLeft(),
+//		env.addAgent(new GridAgentData(new DummyAgent(), ((AbstractGridEnvironment) env).getBottomLeft(),
 //				GridOrientation.NORTH));
+		env.addAgent(new GridAgentData(new MyAgent(), ((AbstractGridEnvironment) env).getBottomLeft(),
+				GridOrientation.NORTH));
 		
 		
 		System.out.println(env.printToString());

@@ -26,46 +26,94 @@ public class MyAgent implements Agent
 			return MyEnvironment.MyAction.PICK;
 		// // turn
 		if(percept.getObstacles().contains(GridRelativeOrientation.FRONT)){                    
-                    if(percept.getAbsoluteOrientation()==GridOrientation.SOUTH )
-                        return MyEnvironment.MyAction.TURN_LEFT;             
-                    else
+                    if(percept.getAbsoluteOrientation()==GridOrientation.SOUTH ){
+                        if(percept.getObstacles().contains(GridRelativeOrientation.FRONT_LEFT) &&
+                                percept.getObstacles().contains(GridRelativeOrientation.LEFT) &&
+                                percept.getObstacles().contains(GridRelativeOrientation.BACK_LEFT)&&
+                                percept.getObstacles().contains(GridRelativeOrientation.FRONT_RIGHT)
+                                ) //SOUTH wall RIGHT corner
+                            return MyEnvironment.MyAction.TURN_RIGHT;             
+                        else
+                            return MyEnvironment.MyAction.TURN_LEFT;             
+                    }
+                    if(percept.getAbsoluteOrientation()==GridOrientation.NORTH )
                         return MyEnvironment.MyAction.TURN_RIGHT;             
+
+                    if(percept.getAbsoluteOrientation()==GridOrientation.EAST )
+                            return MyEnvironment.MyAction.TURN_RIGHT;             
+
+                    if(percept.getAbsoluteOrientation()==GridOrientation.WEST ){
+                        if(percept.getObstacles().contains(GridRelativeOrientation.FRONT_LEFT) &&
+                                percept.getObstacles().contains(GridRelativeOrientation.LEFT) &&
+                                percept.getObstacles().contains(GridRelativeOrientation.BACK_LEFT)
+                                ) //SOUTH wall LEFT corner
+                            return MyEnvironment.MyAction.TURN_RIGHT;             
+                        else
+                            return MyEnvironment.MyAction.TURN_LEFT;             
+                    }
                 }
                 if(percept.getAbsoluteOrientation()==GridOrientation.EAST ){
-                    if(percept.getObstacles().contains(GridRelativeOrientation.FRONT_LEFT)){ //North wall
-                        if (Math.random()>0.5)
+                    if(percept.getObstacles().contains(GridRelativeOrientation.FRONT_LEFT) &&
+                            percept.getObstacles().contains(GridRelativeOrientation.LEFT) &&
+                            percept.getObstacles().contains(GridRelativeOrientation.BACK_LEFT)
+                            ){ //North wall
+                        if (Math.random()>0.8)
                             return MyEnvironment.MyAction.TURN_RIGHT;
                         else
                             return MyEnvironment.MyAction.FORWARD;
-                    }else{ // Obstacle when going north 
-                        if (!percept.getObstacles().contains(GridRelativeOrientation.LEFT))
-                            return MyEnvironment.MyAction.TURN_LEFT;                        
                     }
-                }
-                if(percept.getAbsoluteOrientation()==GridOrientation.NORTH){
-                    if(percept.getObstacles().contains(GridRelativeOrientation.BACK_LEFT) &&
-                            !percept.getObstacles().contains(GridRelativeOrientation.BACK) &&
-                            !percept.getObstacles().contains(GridRelativeOrientation.LEFT))
-                                return MyEnvironment.MyAction.TURN_LEFT;
+
+                    if(percept.getObstacles().contains(GridRelativeOrientation.FRONT_RIGHT) &&
+                            percept.getObstacles().contains(GridRelativeOrientation.RIGHT) &&
+                            percept.getObstacles().contains(GridRelativeOrientation.BACK_RIGHT)
+                            ){ //SOUTH wall
+                        if (Math.random()>0.5)
+                            return MyEnvironment.MyAction.TURN_LEFT;
+                        else
+                            return MyEnvironment.MyAction.FORWARD;
+                    }
+                    
+                    if(!percept.getObstacles().contains(GridRelativeOrientation.LEFT) &&
+                            percept.getObstacles().contains(GridRelativeOrientation.BACK_LEFT)
+                            ) //SOUTH wall
+                        return MyEnvironment.MyAction.TURN_LEFT;                        
+                    if(!percept.getObstacles().contains(GridRelativeOrientation.RIGHT) &&
+                            percept.getObstacles().contains(GridRelativeOrientation.BACK_RIGHT)
+                            ) //SOUTH wall
+                        return MyEnvironment.MyAction.TURN_RIGHT;                        
                 }
 
                 if(percept.getAbsoluteOrientation()==GridOrientation.WEST){
+                    if(percept.getObstacles().contains(GridRelativeOrientation.RIGHT) &&
+                            !percept.getObstacles().contains(GridRelativeOrientation.BACK) &&
+                            !percept.getObstacles().contains(GridRelativeOrientation.BACK_RIGHT) &&
+                            !percept.getObstacles().contains(GridRelativeOrientation.FRONT_RIGHT))//just passed an obstacle, coming from north
+                                return MyEnvironment.MyAction.TURN_LEFT;
+                    
                     if(percept.getObstacles().contains(GridRelativeOrientation.LEFT) &&
-                            !percept.getObstacles().contains(GridRelativeOrientation.RIGHT)) //North wall
+                            !percept.getObstacles().contains(GridRelativeOrientation.BACK) &&
+                            !percept.getObstacles().contains(GridRelativeOrientation.BACK_LEFT) &&
+                            !percept.getObstacles().contains(GridRelativeOrientation.FRONT_LEFT))//just passed an obstacle, coming from north
                                 return MyEnvironment.MyAction.TURN_RIGHT;
+                }
+
+                if(percept.getAbsoluteOrientation()==GridOrientation.NORTH){
+                    if(percept.getObstacles().contains(GridRelativeOrientation.BACK_LEFT) &&
+                            !percept.getObstacles().contains(GridRelativeOrientation.BACK) &&
+                            !percept.getObstacles().contains(GridRelativeOrientation.LEFT))//just passed an obstacle
+                                return MyEnvironment.MyAction.TURN_LEFT;
                 }
 
                 if(percept.getAbsoluteOrientation()==GridOrientation.SOUTH){
                     if(percept.getObstacles().contains(GridRelativeOrientation.BACK_RIGHT) &&
                             !percept.getObstacles().contains(GridRelativeOrientation.BACK) &&
-                            !percept.getObstacles().contains(GridRelativeOrientation.RIGHT))
+                            !percept.getObstacles().contains(GridRelativeOrientation.RIGHT))//just passed an obstacle
                                 return MyEnvironment.MyAction.TURN_RIGHT;
                 }
 
                 // forward
 		return MyEnvironment.MyAction.FORWARD;
 	}
-	
 	@Override
 	public String toString()
 	{

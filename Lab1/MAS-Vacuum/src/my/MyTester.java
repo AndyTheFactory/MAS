@@ -23,6 +23,7 @@ public class MyTester extends Tester
 	 */
 	public MyTester()
 	{
+            for(int i=0;i<9;i++){
 		env = new MyEnvironment();
 //		env.addAgent(new GridAgentData(new DummyAgent(), ((AbstractGridEnvironment) env).getBottomLeft(),
 //				GridOrientation.NORTH));
@@ -33,6 +34,7 @@ public class MyTester extends Tester
 		System.out.println(env.printToString());
 		
 		makeSteps();
+            }
 	}
 	
 	@Override

@@ -18,9 +18,9 @@ public class MyAgent implements Agent
 	{
 		// TODO Auto-generated method stub
 		MyEnvironment.MyAgentPerceptions percept = (MyEnvironment.MyAgentPerceptions) perceptions;
-		System.out.println("Agent sees current tile is " + (percept.isOverJtile() ? "dirty" : "clean")
-				+ "; current orientation is " + percept.getAbsoluteOrientation() + "; obstacles at: "
-				+ percept.getObstacles());
+	//	System.out.println("Agent sees current tile is " + (percept.isOverJtile() ? "dirty" : "clean")
+	//			+ "; current orientation is " + percept.getAbsoluteOrientation() + "; obstacles at: "
+	//			+ percept.getObstacles());
 		// // clean
 		if(percept.isOverJtile())
 			return MyEnvironment.MyAction.PICK;

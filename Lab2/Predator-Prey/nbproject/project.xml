@@ -5,12 +5,7 @@
         <data xmlns="http://www.netbeans.org/ns/j2se-project/3">
             <name>Predator-Prey</name>
             <source-roots>
-                <root id="src.base.dir"/>
-                <root id="src.communication.dir"/>
-                <root id="src.gridworld.dir"/>
-                <root id="src.hunting.dir"/>
-                <root id="src.my.dir"/>
-                <root id="src.tester.dir"/>
+                <root id="src.src.dir"/>
             </source-roots>
             <test-roots/>
         </data>

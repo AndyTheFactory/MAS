@@ -17,11 +17,11 @@ public class MyTester extends Tester
 	/**
 	 * Number of predators
 	 */
-	protected static final int	NUM_PREDATORS	= 2;
+	protected static final int	NUM_PREDATORS	= 10;
 	/**
 	 * Number of prey agents
 	 */
-	protected static final int	NUM_PREY		= 1;
+	protected static final int	NUM_PREY		= 20;
 	
 	/**
 	 * Range of vision for prey agents.
@@ -35,12 +35,12 @@ public class MyTester extends Tester
 	/**
 	 * Map width
 	 */
-	protected static final int	MAP_WIDTH		= 10;
+	protected static final int	MAP_WIDTH		= 40;
 	
 	/**
 	 * Map height
 	 */
-	protected static final int	MAP_HEIGHT		= 10;
+	protected static final int	MAP_HEIGHT		= 14;
 	
 	/**
 	 * Creates a new tester instance and begins testing.
@@ -52,6 +52,8 @@ public class MyTester extends Tester
 		
 		System.out.println(env.printToString());
 		
+                //setSilent(true);
+                //((MyEnvironment)env).setAllowMessages(false);
 		makeSteps();
 		
 		System.out.println("[Environment] Goal completed. All prey is dead.");

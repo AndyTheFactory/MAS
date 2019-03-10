@@ -85,7 +85,26 @@ public class ProbabilityMap extends HashMap<Action, Double>
 		
 		put(remainingActions.get(nrRemainingActions - 1), 1 - probSum);
 	}
-	
+	private Double getProbabilitySum()
+        {
+            Double sum = new Double(0);
+            
+            for(Double k:this.values()){
+                sum+=k;
+            }
+            
+            return sum;
+        }
+        private void recalcProbabilities()
+        {
+            Double sum=getProbabilitySum();
+            for(Action k:this.keySet()){
+                this.put(k, this.get(k).doubleValue()/sum);
+                
+            }
+            
+            
+        }
 	/**
 	 * Return a random action from a discrete distribution over a set of possible actions.
 	 * 
@@ -95,6 +114,7 @@ public class ProbabilityMap extends HashMap<Action, Double>
 	{
 		double r = Math.random();
 		double countProb = 0.0;
+                recalcProbabilities();
 		for(Action act : keySet())
 		{
 			countProb += get(act).doubleValue();

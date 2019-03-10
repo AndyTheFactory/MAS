@@ -14,7 +14,9 @@ public class Tester
 	 * The environment to test, containing the agents.
 	 */
 	protected Environment env;
-	
+        
+        private boolean silent=false;
+ 	
 	/**
 	 * Step counter.
 	 */
@@ -29,21 +31,25 @@ public class Tester
 		{
 			env.step();
 			stepCount++;
-			
-			System.out.println(env.printToString());
-			System.out.println("Num steps: " + stepCount);
-			System.out.println();
-			
-			try
-			{
-				Thread.sleep(getDelay());
-			} catch(InterruptedException e)
-			{
-				e.printStackTrace();
-			}
+			if (!silent){
+                            System.out.println(env.printToString());
+                            System.out.println("Num steps: " + stepCount);
+                            System.out.println();
+                            try
+                            {
+                                    Thread.sleep(getDelay());
+                            } catch(InterruptedException e)
+                            {
+                                    e.printStackTrace();
+                            }
+                        }
 		}
+                System.out.println("Total steps: " + stepCount);
 	}
 	
+        public void setSilent(boolean val){
+            this.silent=val;
+        }
 	/**
 	 * @return delay between successive steps.
 	 */

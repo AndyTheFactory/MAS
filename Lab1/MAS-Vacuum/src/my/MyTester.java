@@ -3,6 +3,7 @@ package my;
 import gridworld.AbstractGridEnvironment;
 import gridworld.AbstractGridEnvironment.GridAgentData;
 import gridworld.GridOrientation;
+import tester.DummyAgent;
 import tester.Tester;
 
 /**

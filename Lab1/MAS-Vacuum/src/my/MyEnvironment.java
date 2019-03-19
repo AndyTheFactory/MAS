@@ -8,7 +8,9 @@ import base.Action;
 import base.Perceptions;
 import gridworld.AbstractGridEnvironment;
 import gridworld.GridOrientation;
+import gridworld.GridPosition;
 import gridworld.GridRelativeOrientation;
+import java.util.List;
 
 /**
  * Your implementation of the environment in which cleaner agents work.
@@ -54,7 +56,7 @@ public class MyEnvironment extends AbstractGridEnvironment
 	public static class MyAgentPerceptions implements Perceptions
 	{
 		/**
-		 * Obstacles perceived. They are percieved as a relative orientation at which an obstacled is neighbor to the
+		 * Obstacles perceived. They are percieved as a relative orientation at which an obstacle is neighbor to the
 		 * agent. The orientation is relative to the absolute orientation of the agent.
 		 */
 		protected Set<GridRelativeOrientation>	obstacles;
@@ -69,7 +71,7 @@ public class MyEnvironment extends AbstractGridEnvironment
 		
 		/**
 		 * @param obstacleOrientations
-		 *            - Obstacles perceived. They are percieved as a relative orientation at which an obstacled is
+		 *            - Obstacles perceived. They are percieved as a relative orientation at which an obstacle is
 		 *            neighbor to the agent. The orientation is relative to the absolute orientation of the agent.
 		 * @param jTile
 		 *            - <code>true</code> if there is trash in the current tile.
@@ -131,5 +133,47 @@ public class MyEnvironment extends AbstractGridEnvironment
 		// TODO Auto-generated method stub
 		// this should iterate through all agents, provide them with perceptions, and apply the
 		// action they return.
+                List<GridAgentData> ag_list=getAgentsData();
+                
+                for(GridAgentData ag:agents){
+                    
+                    GridPosition pos=ag.getPosition();
+                    boolean isJunk=getJtiles().contains(pos);
+                    
+                    Set<GridPosition> xt=getXtiles();
+                    
+                    Set<GridRelativeOrientation> obstacleOrientations=new HashSet<>();
+
+                    for(GridRelativeOrientation orientation: GridRelativeOrientation.values()){
+                        GridPosition neighbour=pos.getNeighborPosition(ag.getOrientation(),orientation);
+                        if (xt.contains(neighbour))
+                            obstacleOrientations.add(pos.getRelativeOrientation(ag.getOrientation(), neighbour));
+                    }
+                    
+                    MyAgentPerceptions perc=new MyAgentPerceptions(obstacleOrientations, 
+                            isJunk, ag.getOrientation());
+                    
+                    MyAction act=(MyAction)ag.getAgent().response(perc);
+                    
+                    switch(act){
+                        case FORWARD:
+                                GridPosition newPos=pos.getNeighborPosition(ag.getOrientation(), GridRelativeOrientation.FRONT);
+                                ag.setPosition(newPos);
+                            break;
+                        case TURN_LEFT:
+                                ag.setOrientation(ag.getOrientation().computeRelativeOrientation(GridRelativeOrientation.LEFT));
+                                
+                               
+                            break;
+                        case TURN_RIGHT:
+                                ag.setOrientation(ag.getOrientation().computeRelativeOrientation(GridRelativeOrientation.RIGHT));
+                            break;
+                        case PICK:
+                                cleanTile(pos);
+                            break;
+                    }
+                    
+                }
+                
 	}
 }

@@ -3,14 +3,16 @@
     <type>org.netbeans.modules.java.j2seproject</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/j2se-project/3">
-            <name>MAS-Vacuum</name>
+            <name>Predator-Prey</name>
             <source-roots>
-                <root id="src.dir" name="src"/>
+                <root id="src.base.dir"/>
+                <root id="src.communication.dir"/>
+                <root id="src.gridworld.dir"/>
+                <root id="src.hunting.dir"/>
+                <root id="src.my.dir"/>
+                <root id="src.tester.dir"/>
             </source-roots>
             <test-roots/>
         </data>
-        <spellchecker-wordlist xmlns="http://www.netbeans.org/ns/spellchecker-wordlist/1">
-            <word>percieved</word>
-        </spellchecker-wordlist>
     </configuration>
 </project>

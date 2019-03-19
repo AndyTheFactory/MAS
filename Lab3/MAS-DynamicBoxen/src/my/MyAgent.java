@@ -5,10 +5,17 @@ import java.util.List;
 import base.Action;
 import base.Agent;
 import base.Perceptions;
+import blocksworld.Block;
 import blocksworld.BlocksWorld;
 import blocksworld.BlocksWorldAction;
 import blocksworld.BlocksWorldAction.Type;
+import blocksworld.BlocksWorldEnvironment;
 import blocksworld.BlocksWorldPerceptions;
+import blocksworld.Stack;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
 
 /**
  * Agent to implement.
@@ -19,7 +26,12 @@ public class MyAgent implements Agent
 	 * Name of the agent.
 	 */
 	String agentName;
-	
+        
+        Map<Character,Stack> beliefs;
+        
+        BlocksWorld desired;
+        
+        int changedBelief;
 	/**
 	 * Constructor for the agent.
 	 * 
@@ -31,6 +43,9 @@ public class MyAgent implements Agent
 	public MyAgent(BlocksWorld desiredState, String name)
 	{
 		agentName = name;
+                beliefs=new HashMap<>();
+                desired=desiredState;
+                changedBelief=0;
 		// TODO
 	}
 	
@@ -38,8 +53,11 @@ public class MyAgent implements Agent
 	public Action response(Perceptions input)
 	{
 		@SuppressWarnings("unused")
+                        
+                
 		BlocksWorldPerceptions perceptions = (BlocksWorldPerceptions) input;
 		
+                reviseBeliefs(perceptions);
 		// TODO: revise beliefs; if necessary, make a plan; return an action.
 		
 		return new BlocksWorldAction(Type.AGENT_COMPLETED);
@@ -48,10 +66,27 @@ public class MyAgent implements Agent
 	/**
 	 * @param perceivedWorldState
 	 *            - the blocks that the agent can see.
+         * @return beliefs changed
 	 */
-	protected void reviseBeliefs(BlocksWorld perceivedWorldState)
+	protected boolean reviseBeliefs(BlocksWorldPerceptions perceivedWorldState)
 	{
 		// TODO: check if what the agent knows corresponds to what the agent sees.
+            char curr = perceivedWorldState.getCurrentStation().getLabel();
+            if (beliefs.containsKey(curr)){
+                //i know the stack
+                Stack known=beliefs.get(curr);
+                Stack reality=perceivedWorldState.getVisibleStack();
+                //known.getBlocks();
+                if (known.equals(reality)){
+                    return false;
+                }
+                
+                beliefs.put(curr, reality);
+                return true;
+            }else{
+                beliefs.put(curr, perceivedWorldState.getVisibleStack());
+            }
+            return false;
 	}
 	
 	/**

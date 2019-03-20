@@ -31,6 +31,8 @@ public class MyAgent implements Agent
         
         BlocksWorld desired;
         
+        LinkedList<BlocksWorldAction> currentplan;
+        
         int changedBelief;
 	/**
 	 * Constructor for the agent.
@@ -46,6 +48,7 @@ public class MyAgent implements Agent
                 beliefs=new HashMap<>();
                 desired=desiredState;
                 changedBelief=0;
+                currentplan=new LinkedList<>();
 		// TODO
 	}
 	
@@ -57,10 +60,15 @@ public class MyAgent implements Agent
                 
 		BlocksWorldPerceptions perceptions = (BlocksWorldPerceptions) input;
 		
-                reviseBeliefs(perceptions);
+                boolean something_changed=reviseBeliefs(perceptions);
 		// TODO: revise beliefs; if necessary, make a plan; return an action.
-		
-		return new BlocksWorldAction(Type.AGENT_COMPLETED);
+		if (something_changed || currentplan.size()<=0){
+                    currentplan=(LinkedList<BlocksWorldAction>)plan();
+                }
+                if (currentplan.size()>0)
+                    return currentplan.pollFirst();
+                else
+                    return new BlocksWorldAction(Type.AGENT_COMPLETED);
 	}
 	
 	/**
@@ -86,6 +94,7 @@ public class MyAgent implements Agent
             }else{
                 beliefs.put(curr, perceivedWorldState.getVisibleStack());
             }
+            
             return false;
 	}
 	
@@ -95,15 +104,45 @@ public class MyAgent implements Agent
 	@SuppressWarnings("static-method")
 	protected List<BlocksWorldAction> plan()
 	{
-		// TODO
-		return null;
+            LinkedList<BlocksWorldAction> plan=new LinkedList<>();
+            
+            //check if i know all necessary blocks
+            LinkedList<Block> known=new LinkedList<>();
+            LinkedList<Block> search=new LinkedList<>();
+            
+            search.addAll(desired.allBlocks());
+            for(Map.Entry<Character,Stack> pair:beliefs.entrySet()){
+                known.addAll(pair.getValue().getBlocks());                
+            }
+            for(Block bl:known){
+                search.remove(bl);
+            }
+            if (search.size()<=0){
+                //know them all
+                //plan.add(new BlocksWorldAction(Type.AGENT_COMPLETED));
+                ArrayList
+            }else{
+                //keep searching
+                plan.add(new BlocksWorldAction(Type.NEXT_STATION));
+                
+            }
+            
+            return plan;
 	}
 	
 	@Override
 	public String statusString()
 	{
 		// TODO: return information about the agent's current state and current plan.
-		return toString() + ": PLAN MISSING.";
+                StringBuilder sb=new StringBuilder();
+                
+                sb.append(String.format("Current belief size = %d\n", beliefs.size()));
+                sb.append(String.format("Current plan size = %d\n", beliefs.size()));
+                int i=0;
+                for(BlocksWorldAction ac: currentplan){
+                    sb.append(String.format("       %d.  plan size = %d\n",i++, beliefs.size()));
+                }
+		return toString() + sb.toString();
 	}
 	
 	@Override

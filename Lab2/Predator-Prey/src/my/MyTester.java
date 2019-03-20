@@ -54,7 +54,7 @@ public class MyTester extends Tester
 		System.out.println(env.printToString());
 		
                 setSilent(true);
-                //((MyEnvironment)env).setAllowMessages(false);
+                //  ((MyEnvironment)env).setAllowMessages(false);
 		makeSteps();
 		
 		System.out.println("[Environment] Goal completed. All prey is dead.");

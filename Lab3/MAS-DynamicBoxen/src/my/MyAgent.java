@@ -144,9 +144,85 @@ public class MyAgent implements Agent
             return plan;
 	}
 	protected List<BlocksWorldAction> subPlan(Stack stack_todo){
+            List<BlocksWorldAction> subplan=new LinkedList<>();
+            Block bottom=stack_todo.getBottomBlock();
+            for(Map.Entry<Character,Stack> p: beliefs.entrySet()){
+                if (p.getValue().contains(bottom)){
+                    subplan.addAll(subPlan_Bottom(p.getKey(), p.getValue(), bottom));
+                    
+                    if (subplan.size()>0){
+                        return subplan;
+                    }
+                    LinkedList<Block> my=new LinkedList<>();
+                    my.addAll(stack_todo.getBlocks());
+                    Block top=my.pollLast();
+                    
+                    Block bl=my.pollLast();
+                    
+                    while(bl!=null){
+                        subplan.addAll(subPlan_BringBlockTo(p.getKey(), bl,top));
+                        top=bl;
+                        bl=my.pollLast();
+                    }
+                    
+                }
+            }
             
+            return subplan;
         }
-	
+	protected List<BlocksWorldAction> subPlan_BringBlockTo(Character station,Block target,Block topmost){
+            List<BlocksWorldAction> subplan=new LinkedList<>();
+            for(Map.Entry<Character,Stack> p: beliefs.entrySet()){
+                Stack stack=p.getValue();
+                
+                if (stack.contains(target)){
+                    Block bl=stack.getTopBlock();
+                    while (!bl.equals(target)){
+                        subplan.add(new BlocksWorldAction(Type.GO_TO_STATION,new BlocksWorldEnvironment.Station(p.getKey())));
+                        subplan.add(new BlocksWorldAction(Type.UNSTACK,bl,stack.getBelow(bl)));
+                        subplan.add(new BlocksWorldAction(Type.PUTDOWN,bl));
+                    }
+                    subplan.add(new BlocksWorldAction(Type.GO_TO_STATION,new BlocksWorldEnvironment.Station(p.getKey())));
+                    if (stack.getBelow(bl)==null)                       
+                        subplan.add(new BlocksWorldAction(Type.PICKUP,bl));
+                    else
+                        subplan.add(new BlocksWorldAction(Type.UNSTACK,bl,stack.getBelow(bl)));
+                    subplan.add(new BlocksWorldAction(Type.GO_TO_STATION,new BlocksWorldEnvironment.Station(station)));
+                    subplan.add(new BlocksWorldAction(Type.STACK,bl,topmost));
+                }
+            }
+            
+            return subplan;
+        }
+	protected List<BlocksWorldAction> subPlan_Bottom(Character station,Stack stack,Block target){
+            List<BlocksWorldAction> subplan=new LinkedList<>();
+
+            LinkedList<Block> my=new LinkedList<>();
+            my.addAll(stack.getBlocks());
+            if (stack.getBottomBlock().equals(target)){
+                if (stack.isSingleBlock()){
+                    return subplan;
+                }
+                my.pollLast(); //Last sau first?
+                for(Block bl:my){
+                    subplan.add(new BlocksWorldAction(Type.GO_TO_STATION,new BlocksWorldEnvironment.Station(station)));
+                    subplan.add(new BlocksWorldAction(Type.UNSTACK,bl,stack.getBelow(bl)));
+                    subplan.add(new BlocksWorldAction(Type.PUTDOWN,bl));
+                }
+            }else{
+                for(Block bl:my){
+                    
+                    subplan.add(new BlocksWorldAction(Type.GO_TO_STATION,new BlocksWorldEnvironment.Station(station)));
+                    subplan.add(new BlocksWorldAction(Type.UNSTACK,bl,stack.getBelow(bl)));
+                    subplan.add(new BlocksWorldAction(Type.PUTDOWN,bl));
+                    
+                    if (bl.equals(target))
+                        break;
+                }
+                
+            }
+            return subplan;
+        }
 	@Override
 	public String statusString()
 	{
@@ -154,10 +230,10 @@ public class MyAgent implements Agent
                 StringBuilder sb=new StringBuilder();
                 
                 sb.append(String.format("Current belief size = %d\n", beliefs.size()));
-                sb.append(String.format("Current plan size = %d\n", beliefs.size()));
-                int i=0;
+                sb.append(String.format("Current plan size = %d\n", currentplan.size()));
+                int i=1;
                 for(BlocksWorldAction ac: currentplan){
-                    sb.append(String.format("       %d.  plan size = %d\n",i++, beliefs.size()));
+                    sb.append(String.format("       %d.  Do = %s\n",i++, ac.toString()));
                 }
 		return toString() + sb.toString();
 	}

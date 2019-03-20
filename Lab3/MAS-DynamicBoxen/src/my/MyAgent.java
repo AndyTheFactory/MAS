@@ -120,7 +120,21 @@ public class MyAgent implements Agent
             if (search.size()<=0){
                 //know them all
                 //plan.add(new BlocksWorldAction(Type.AGENT_COMPLETED));
-                ArrayList
+                ArrayList<Stack> stacks_todo=new ArrayList<>();
+                stacks_todo.addAll(desired.getStacks());
+                for(Stack st:beliefs.values()){
+                    for(Stack st_d:stacks_todo)
+                        if (st_d.equals(st)){
+                            stacks_todo.remove(st_d);
+                            break;
+                        }
+                }
+                if (stacks_todo.size()<=0){
+                    plan.add(new BlocksWorldAction(Type.AGENT_COMPLETED));
+                    
+                }else{
+                    plan.addAll(subPlan(stacks_todo.get(0)));
+                }
             }else{
                 //keep searching
                 plan.add(new BlocksWorldAction(Type.NEXT_STATION));
@@ -129,6 +143,9 @@ public class MyAgent implements Agent
             
             return plan;
 	}
+	protected List<BlocksWorldAction> subPlan(Stack stack_todo){
+            
+        }
 	
 	@Override
 	public String statusString()

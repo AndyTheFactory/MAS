@@ -20,19 +20,22 @@ public class Tester
 	 */
 	protected void makeSteps()
 	{
+                int i=0;
 		while(!env.goalsCompleted())
 		{
 			env.step();
-			System.out.println(env.printToString());
+			//System.out.println(env.printToString());
 			
 			try
 			{
-				Thread.sleep(getDelay());
+				Thread.sleep(1);//getDelay()
 			} catch(InterruptedException e)
 			{
 				e.printStackTrace();
 			}
+                        i++;
 		}
+                System.out.println(String.format("Steps: %d", i));
 	}
 	
 	/**

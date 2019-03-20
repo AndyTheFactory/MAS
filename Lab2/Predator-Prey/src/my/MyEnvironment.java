@@ -17,6 +17,8 @@ import communication.SocialAction;
 import gridworld.GridOrientation;
 import gridworld.GridPosition;
 import hunting.AbstractHuntingEnvironment;
+import hunting.AbstractWildlifeAgent;
+import hunting.WildlifeAgentType;
 
 /**
  * Your implementation of the environment in which cleaner agents work.
@@ -25,6 +27,8 @@ import hunting.AbstractHuntingEnvironment;
  */
 public class MyEnvironment extends AbstractHuntingEnvironment
 {
+        private boolean allowmessages=true;
+        
 	/**
 	 * Actions for the hunter agent.
 	 *
@@ -202,7 +206,10 @@ public class MyEnvironment extends AbstractHuntingEnvironment
 		
 		super.initialize(w, h, predators, prey, rand);
 	}
-	
+        
+	public void setAllowMessages(boolean val){
+            this.allowmessages=val;
+        }
 	@Override
 	public void step()
 	{
@@ -243,7 +250,7 @@ public class MyEnvironment extends AbstractHuntingEnvironment
 				preyPositions.add(prey.getPosition());
                         
                         for(AgentMessage mess : messageBox)
-                            if (mess.getDestination()==AgentID.getAgentID(predatorAg.getAgent()))
+                            if (mess.getDestination().equals(AgentID.getAgentID(predatorAg.getAgent())))
                                 agentMessages.add(mess);
                             
                         
@@ -266,12 +273,27 @@ public class MyEnvironment extends AbstractHuntingEnvironment
 		// + predAction + " detects prey " + preyPositions + " and predators " + predatorPositions
 		// + " and receives messages " + AgentMessage.filterMessagesFor(messageBox, predAgent.getAgent()));
                 
+		messageBox.clear();
+                
                 for(GridAgentData ag: getAgentsData()){
-                    agentActions.put(ag, (MyAction)ag.getAgent().response(agentPerceptions.get(ag)));
+                    AbstractWildlifeAgent agent=(AbstractWildlifeAgent) ag.getAgent();
+                    MyAction action;
+                    if (agent.getType()==WildlifeAgentType.PREDATOR){
+                        SocialAction res=(SocialAction) agent.response(agentPerceptions.get(ag));
+                        if (res==null)
+                            action=null;
+                        else{
+                            action=res.getPhysicalAction();
+                            if (allowmessages)
+                                messageBox.addAll(res.getOutgoingMessages());
+                        }
+                    }else{
+                        action=(MyAction) agent.response(agentPerceptions.get(ag));                       
+                    }
+                    agentActions.put(ag, action);                        
                 }
 		
 		// STAGE 3: apply the agents' actions in the environment
-		messageBox.clear();
                 
 		// all actions are applied
 		for(GridAgentData agentData : agentActions.keySet())

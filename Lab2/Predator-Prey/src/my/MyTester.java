@@ -17,11 +17,11 @@ public class MyTester extends Tester
 	/**
 	 * Number of predators
 	 */
-	protected static final int	NUM_PREDATORS	= 2;
+	protected static final int	NUM_PREDATORS	= 3;
 	/**
 	 * Number of prey agents
 	 */
-	protected static final int	NUM_PREY		= 1;
+	protected static final int	NUM_PREY		= 10;
 	
 	/**
 	 * Range of vision for prey agents.
@@ -35,12 +35,12 @@ public class MyTester extends Tester
 	/**
 	 * Map width
 	 */
-	protected static final int	MAP_WIDTH		= 10;
+	protected static final int	MAP_WIDTH		= 15;
 	
 	/**
 	 * Map height
 	 */
-	protected static final int	MAP_HEIGHT		= 10;
+	protected static final int	MAP_HEIGHT		= 15;
 	
 	/**
 	 * Creates a new tester instance and begins testing.
@@ -48,13 +48,17 @@ public class MyTester extends Tester
 	public MyTester()
 	{
 		// create environment instance
+            for(int i=0;i<1;i++){
 		env = new MyEnvironment(MAP_WIDTH, MAP_HEIGHT, NUM_PREDATORS, NUM_PREY);
 		
 		System.out.println(env.printToString());
 		
+                setSilent(true);
+                //((MyEnvironment)env).setAllowMessages(false);
 		makeSteps();
 		
 		System.out.println("[Environment] Goal completed. All prey is dead.");
+            }
 	}
 	
 	@Override

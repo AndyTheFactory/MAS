@@ -11,6 +11,7 @@ import blocksworld.BlocksWorldAction;
 import blocksworld.BlocksWorldAction.Type;
 import blocksworld.BlocksWorldEnvironment;
 import blocksworld.BlocksWorldPerceptions;
+import blocksworld.Element;
 import blocksworld.Stack;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,6 +34,13 @@ public class MyAgent implements Agent
         
         LinkedList<BlocksWorldAction> currentplan;
         
+        LinkedList<Block> bottomBlocksTodo;
+        
+        LinkedList<Stack> desiredStack;
+        
+        LinkedList<MyLongTermAction> longTermPlan;
+        
+    
         int changedBelief;
 	/**
 	 * Constructor for the agent.
@@ -49,6 +57,9 @@ public class MyAgent implements Agent
                 desired=desiredState;
                 changedBelief=0;
                 currentplan=new LinkedList<>();
+                desiredStack=new LinkedList<>();
+                bottomBlocksTodo=new LinkedList<>();
+                longTermPlan=new LinkedList<>();
 		// TODO
 	}
 	
@@ -59,12 +70,15 @@ public class MyAgent implements Agent
                         
                 
 		BlocksWorldPerceptions perceptions = (BlocksWorldPerceptions) input;
-		
-                boolean something_changed=reviseBeliefs(perceptions);
-		// TODO: revise beliefs; if necessary, make a plan; return an action.
-		if (something_changed || currentplan.size()<=0){
+		if (perceptions.hasPreviousActionSucceeded())
+                {
+                    boolean something_changed=reviseBeliefs(perceptions);
+                    // TODO: revise beliefs; if necessary, make a plan; return an action.
+                    if (something_changed || currentplan.size()<=0){
+                        currentplan=(LinkedList<BlocksWorldAction>)plan();
+                    }
+                }else
                     currentplan=(LinkedList<BlocksWorldAction>)plan();
-                }
                 if (currentplan.size()>0)
                     return currentplan.pollFirst();
                 else
@@ -80,6 +94,7 @@ public class MyAgent implements Agent
 	{
 		// TODO: check if what the agent knows corresponds to what the agent sees.
             char curr = perceivedWorldState.getCurrentStation().getLabel();
+            
             if (beliefs.containsKey(curr)){
                 //i know the stack
                 Stack known=beliefs.get(curr);
@@ -97,7 +112,32 @@ public class MyAgent implements Agent
             
             return false;
 	}
-	
+	protected List<Block> getBottomBlocks(List<Stack> wrld){
+            LinkedList<Block> res=new LinkedList<>();
+            
+            for(Stack st:wrld){
+                res.add(st.getBottomBlock());
+            }
+            return res;
+        }
+        protected List<BlocksWorldAction> bottomRowPlan(){
+            LinkedList<Block> bottomRow=(LinkedList<Block>) getBottomBlocks(desiredStack);
+            LinkedList<Block> knownBottoms=(LinkedList<Block>) getBottomBlocks((List<Stack>)beliefs.values());
+
+            LinkedList<BlocksWorldAction> plan=new LinkedList<>();
+            for(Block bl:knownBottoms){
+                bottomRow.remove(bl);
+            }
+            
+            for(Block bl:bottomRow){
+                longTermPlan.add(new MyLongTermAction(MyLongTermAction.MyType.BOTTOMIZE,bl));
+                
+            }
+            
+            
+            return plan;
+        }
+        
 	/**
 	 * @return a new plan, as a sequence of {@link BlocksWorldAction} instances, based on the agent's knowledge.
 	 */

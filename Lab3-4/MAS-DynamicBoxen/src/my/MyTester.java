@@ -33,7 +33,7 @@ public class MyTester extends Tester
 	/**
 	 * The probability for the environment to change dynamically at one step. Between 0 and 1.
 	 */
-	public static final float		DYNAMICITY	= .0f;
+	public static final float		DYNAMICITY	= .5f;
 	
 	/**
 	 * The name of the agent.
@@ -48,6 +48,7 @@ public class MyTester extends Tester
 	 */
 	public MyTester() throws IOException
 	{
+               
 		initializeEnvironment(TEST_SUITE);
 		initializeAgents(TEST_SUITE);
 		makeSteps();

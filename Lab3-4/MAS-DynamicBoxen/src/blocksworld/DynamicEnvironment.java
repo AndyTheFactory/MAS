@@ -102,7 +102,8 @@ public class DynamicEnvironment extends BlocksWorldEnvironment
 	 */
 	protected void performDynamicAction()
 	{
-		if(Math.random() < MyTester.DYNAMICITY)
+                Double m=Math.random();
+		if(m < MyTester.DYNAMICITY)
 		{
 			DynamicAction dyna = DynamicAction.pick();
 			Set<Stack> observedStacks = new HashSet<>();

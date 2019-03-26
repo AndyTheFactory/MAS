@@ -30,7 +30,7 @@ public class MyLongTermAction  extends Element<Block> implements Action
 			
 		STACK(2),
                 
-                SCAN;
+                SCAN(1);
 		
 		int args;
 		

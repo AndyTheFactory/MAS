@@ -295,7 +295,7 @@ public abstract class BlocksWorldEnvironment implements Environment
 			{
 			case PICKUP:
 				// modify world; remove station; switch agent to other station.
-				if(!currentStack.contains(act.getArgument())){
+				if(currentStack.contains(act.getArgument())){
                                     ag.setHolding(worldstate.pickUp(act.getArgument()));
                                     ag.setStation(stations.get((position + 1) % stations.size()));
                                     stations.remove(agentStation);

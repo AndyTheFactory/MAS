@@ -93,6 +93,13 @@ public class MyAgent implements Agent
                         currentplan=(LinkedList<BlocksWorldAction>)plan(perceptions);
                     }
                 }else{
+                    if (previousAction.getType()==Type.GO_TO_STATION){
+                        //Station is gone
+                        Character station=((BlocksWorldEnvironment.Station)previousAction.getArgument()).getLabel();
+                        beliefs.remove(station);
+                        
+                    }
+                    reviseBeliefs(perceptions);
                     currentplan.clear();
                     if (previousAction.getType()==Type.STACK){
                         action=new BlocksWorldAction(Type.PUTDOWN,previousAction.getArgument());
@@ -265,40 +272,61 @@ public class MyAgent implements Agent
                         break;
                     case STACK:
                             Block bl2=action.getSecondArgument();//Put on this block
+                            Stack foundinstack=null;
                             //Clear target Station 
                             for(Stack st:beliefs.values()){
-                                if (st.contains(bl2)&& !st.isClear(bl2)){
-                                    Character targetstation=getStationForBlock(bl2);
-                                    if(!perceptions.getVisibleStack().contains(bl2))
-                                        plan.add(new BlocksWorldAction(Type.GO_TO_STATION,new BlocksWorldEnvironment.Station(targetstation)));
-                                    Block bb=st.getTopBlock();
-                                    while(!bb.equals(bl2)){
-                                        plan.add(new BlocksWorldAction(Type.UNSTACK,bb,st.getBelow(bb)));
-                                        plan.add(new BlocksWorldAction(Type.GO_TO_STATION,new BlocksWorldEnvironment.Station(targetstation)));
-                                        bb=st.getBelow(bb);
+                                if (st.contains(bl2)){
+                                    foundinstack=st;    
+                                    if(!st.isClear(bl2)){
+                                        Character targetstation=getStationForBlock(bl2);
+                                        if(!perceptions.getVisibleStack().contains(bl2))
+                                            plan.add(new BlocksWorldAction(Type.GO_TO_STATION,new BlocksWorldEnvironment.Station(targetstation)));
+                                        Block bb=st.getTopBlock();
+                                        while(!bb.equals(bl2)){
+                                            plan.add(new BlocksWorldAction(Type.UNSTACK,bb,st.getBelow(bb)));
+                                            plan.add(new BlocksWorldAction(Type.PUTDOWN,bb));
+                                            plan.add(new BlocksWorldAction(Type.GO_TO_STATION,new BlocksWorldEnvironment.Station(targetstation)));
+                                            bb=st.getBelow(bb);
+                                        }
+                                        longTermPlan.addFirst(new MyLongTermAction(MyLongTermAction.MyType.STACK,bl,bl2)); //keep the long termplan
+                                        return plan; // that
                                     }
-                                    longTermPlan.addFirst(new MyLongTermAction(MyLongTermAction.MyType.STACK,bl,bl2)); //keep the long termplan
-                                    return plan; // that
+                                    break;
                                 }
                             }
-                            if (beliefs.values().contains(bl)){
-                                //i know where the source block is
-                                Character targetstation=getStationForBlock(bl);
+                            // bl2 = destination
+                            // bl= block to move
+                            if (foundinstack!=null){
+                                //i know where the destination block is and it is clear
                                 if (perceptions.getVisibleStack().contains(bl)){
+                                    //source block is under me
                                     if (perceptions.getVisibleStack().isClear(bl)){                                        
-                                        targetstation=getStationForBlock(bl2);
+                                        Character targetstation=getStationForBlock(bl2);
                                         plan.add(new BlocksWorldAction(Type.PICKUP,bl));
                                         plan.add(new BlocksWorldAction(Type.GO_TO_STATION,new BlocksWorldEnvironment.Station(targetstation)));
                                         plan.add(new BlocksWorldAction(Type.STACK,bl,bl2));
-                                        plan.add(new BlocksWorldAction(Type.LOCK,bl,bl2));
-                                        return plan;
+                                        plan.add(new BlocksWorldAction(Type.LOCK,bl));
+                                    }else{
+                                        Character targetstation=getStationForBlock(bl);
+                                        plan.add(new BlocksWorldAction(Type.GO_TO_STATION,new BlocksWorldEnvironment.Station(targetstation)));                                        
+                                        plan.add(new BlocksWorldAction(Type.PICKUP,bl));
+                                        targetstation=getStationForBlock(bl2);
+                                        plan.add(new BlocksWorldAction(Type.GO_TO_STATION,new BlocksWorldEnvironment.Station(targetstation)));
+                                        plan.add(new BlocksWorldAction(Type.STACK,bl,bl2));
+                                        plan.add(new BlocksWorldAction(Type.LOCK,bl));
                                     }
                                     
                                 }else{
-                                    plan.add(new BlocksWorldAction(Type.GO_TO_STATION,new BlocksWorldEnvironment.Station(targetstation)));
-                                    longTermPlan.addFirst(new MyLongTermAction(MyLongTermAction.MyType.STACK,bl,bl2)); //keep the long termplan
-                                    return plan; // that
-                                    
+                                    Character targetstation=getStationForBlock(bl);
+                                    if (targetstation=='\0'){
+                                        longTermPlan.addFirst(new MyLongTermAction(MyLongTermAction.MyType.STACK,bl,bl2)); //keep the long termplan
+                                        longTermPlan.addFirst(new MyLongTermAction(MyLongTermAction.MyType.FIND,bl)); //search and bottomize
+                                        plan.add(new BlocksWorldAction(Type.NEXT_STATION));
+                                        
+                                    }else{
+                                        plan.add(new BlocksWorldAction(Type.GO_TO_STATION,new BlocksWorldEnvironment.Station(targetstation)));
+                                        longTermPlan.addFirst(new MyLongTermAction(MyLongTermAction.MyType.STACK,bl,bl2)); //keep the long termplan
+                                    }
                                 }
                             }else{
                                 //find target station

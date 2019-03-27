@@ -142,9 +142,15 @@ public class MyAgent implements Agent
             }
             return plan;
         }
-        protected List<MyLongTermAction> stackPlan(BlocksWorldPerceptions perceptions){
+        protected List<MyLongTermAction> stackPlan(BlocksWorldPerceptions perceptions,Stack stack_todo){
             LinkedList<MyLongTermAction> plan=new LinkedList<>();
-            
+            for(Stack st:lockedStacks){
+                if (st.getBottomBlock().equals(stack_todo.getBottomBlock())){
+                    Block bl1=st.getTopBlock();
+                    Block bl2=stack_todo.getAbove(bl1);
+                    plan.add(new MyLongTermAction(MyLongTermAction.MyType.STACK,bl2,bl1));
+                }
+            }
             return plan;
         }
         protected Character getStationForBlock(Block bl){
@@ -229,7 +235,38 @@ public class MyAgent implements Agent
                         }
                         
                         break;
-                        
+                    case STACK:
+                            Block bl2=action.getSecondArgument();//Put on this block
+                            //Clear target Station 
+                            for(Stack st:beliefs.values()){
+                                if (st.contains(bl2)&& !st.isClear(bl2)){
+                                    Character targetstation=getStationForBlock(bl2);
+                                    plan.add(new BlocksWorldAction(Type.GO_TO_STATION,new BlocksWorldEnvironment.Station(targetstation)));
+                                    Block bb=st.getTopBlock();
+                                    while(!bb.equals(bl2)){
+                                        plan.add(new BlocksWorldAction(Type.UNSTACK,bb,st.getBelow(bb)));
+                                        plan.add(new BlocksWorldAction(Type.GO_TO_STATION,new BlocksWorldEnvironment.Station(targetstation)));
+                                        bb=st.getBelow(bb);
+                                    }
+                                    longTermPlan.addFirst(new MyLongTermAction(MyLongTermAction.MyType.STACK,bl,bl2)); //keep the long termplan
+                                    return plan; // that
+                                }
+                            }
+                            if (perceptions.getVisibleStack().contains(bl)){
+                                //i'm above target station
+                                if (perceptions.getVisibleStack().getTopBlock().equals(bl)){
+                                    
+                                    Character targetstation=getStationForBlock(bl);
+                                    plan.add(new BlocksWorldAction(Type.GO_TO_STATION,new BlocksWorldEnvironment.Station(targetstation)));
+                                    
+                                }
+                            }else{
+                                //find target station
+                                
+                                
+                            }
+                            
+                        break;
                         
                 }
                 
@@ -254,6 +291,13 @@ public class MyAgent implements Agent
                     plan.add(new BlocksWorldAction(Type.AGENT_COMPLETED));
                     return plan;
                 }
+                
+                longTermPlan.addAll(stackPlan(perceptions,stacks_todo.get(0)));
+                
+                if (longTermPlan.size()<=0) 
+                    longTermPlan.addFirst(new MyLongTermAction(MyLongTermAction.MyType.SCAN,
+                              perceptions.getVisibleStack().getBottomBlock()
+                        )); //scan if we have no other idea
                 
                 
             }

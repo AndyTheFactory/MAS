@@ -295,12 +295,17 @@ public abstract class BlocksWorldEnvironment implements Environment
 			{
 			case PICKUP:
 				// modify world; remove station; switch agent to other station.
-				if(!currentStack.contains(act.getArgument()))
-					throw new IllegalArgumentException(
-							"The block [" + act.getArgument() + "] is not in the current stack " + currentStack);
-				ag.setHolding(worldstate.pickUp(act.getArgument()));
-				ag.setStation(stations.get((position + 1) % stations.size()));
-				stations.remove(agentStation);
+				if(!currentStack.contains(act.getArgument())){
+                                    ag.setHolding(worldstate.pickUp(act.getArgument()));
+                                    ag.setStation(stations.get((position + 1) % stations.size()));
+                                    stations.remove(agentStation);
+                                }else{
+                                    ag.setPreviousActionFailed();
+                                    return false;
+                                }
+                                
+//					throw new IllegalArgumentException(
+//							"The block [" + act.getArgument() + "] is not in the current stack " + currentStack);
 				break;
 			case PUTDOWN:
 			{
@@ -315,26 +320,49 @@ public abstract class BlocksWorldEnvironment implements Environment
 				break;
 			}
 			case UNSTACK:
-				if(!currentStack.contains(act.getFirstArgument()))
-					throw new IllegalArgumentException(
-							"The block [" + act.getFirstArgument() + "] is not in the current stack " + currentStack);
-				ag.setHolding(worldstate.unstack(act.getFirstArgument(), act.getSecondArgument()));
+				if(currentStack.contains(act.getFirstArgument()) && !currentStack.isLocked(act.getFirstArgument()))
+                                    ag.setHolding(worldstate.unstack(act.getFirstArgument(), act.getSecondArgument()));
+                                else{
+                                    ag.setPreviousActionFailed();
+                                    return false;
+                                }
+//					throw new IllegalArgumentException(
+//							"The block [" + act.getFirstArgument() + "] is not in the current stack " + currentStack);
 				break;
 			case STACK:
-				if(!currentStack.contains(act.getSecondArgument()))
-					throw new IllegalArgumentException(
-							"The block [" + act.getSecondArgument() + "] is not in the current stack " + currentStack);
-				worldstate.stack(act.getFirstArgument(), act.getSecondArgument());
-				ag.setHolding(null);
+				if(currentStack.contains(act.getSecondArgument())){
+                                    worldstate.stack(act.getFirstArgument(), act.getSecondArgument());
+                                    ag.setHolding(null);
+                                }else{
+//					throw new IllegalArgumentException(
+//							"The block [" + act.getSecondArgument() + "] is not in the current stack " + currentStack);
+                                    ag.setPreviousActionFailed();
+                                    return false;
+                                }
 				break;
 			case GO_TO_STATION:
-				ag.setStation((Station) act.getArgument());
+                                if (stations.contains((Station) act.getArgument()))
+                                    ag.setStation((Station) act.getArgument());
+                                else{
+                                    ag.setPreviousActionFailed();
+                                    return false;                                    
+                                }
 				break;
 			case LOCK:
-				if(!currentStack.contains(act.getArgument()))
-					throw new IllegalArgumentException(
-							"The block [" + act.getArgument() + "] is not in the current stack " + currentStack);
-				worldstate.lock(act.getFirstArgument());
+				if(currentStack.contains(act.getArgument()) &&
+                                        !currentStack.lockedBlocks.contains(act.getArgument()) &&
+                                         (currentStack.isOnTable(act.getArgument()) ||
+                                            currentStack.lockedBlocks.contains(currentStack.getBelow(act.getArgument())))
+                                        )
+                                {
+                                    worldstate.lock(act.getFirstArgument());
+                                    
+                                }else{
+//					throw new IllegalArgumentException(
+//							"The block [" + act.getArgument() + "] is not in the current stack " + currentStack);
+                                    ag.setPreviousActionFailed();
+                                    return false;                                    
+                                }
 				break;
 			case NEXT_STATION:
 				ag.setStation(stations.get((position + 1) % stations.size()));

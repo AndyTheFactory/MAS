@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 import org.omg.CORBA.BAD_CONTEXT;
 
 /**
@@ -31,7 +32,7 @@ public class MyAgent implements Agent
         
         Map<Character,Stack> beliefs;
         
-        Map<Character,LinkedList<Block>> lockedStacks;
+        LinkedList<LinkedList<Block>> lockedStacks;
         
         BlocksWorld desired;
         
@@ -43,6 +44,7 @@ public class MyAgent implements Agent
         LinkedList<MyLongTermAction> longTermPlan;
         
         BlocksWorldAction previousAction=null;
+        Block holding=null;
         
     
         int changedBelief;
@@ -63,11 +65,22 @@ public class MyAgent implements Agent
                 currentplan=new LinkedList<>();
                 bottomBlocksTodo=new LinkedList<>();
                 longTermPlan=new LinkedList<>();
-                lockedStacks=new HashMap<>();
+                lockedStacks=new LinkedList<LinkedList<Block>>() ;
                 previousAction=new BlocksWorldAction(Type.NONE);
 		// TODO
 	}
-	
+	private void addToLocked(BlocksWorldPerceptions perceptions,Block block){
+            
+            for(LinkedList<Block> st:lockedStacks){
+                if (perceptions.getVisibleStack().getBottomBlock().equals(st.getFirst())){
+                    st.addLast(block);
+                    return;
+                }
+            }
+            LinkedList<Block> n=new LinkedList<Block>();
+            n.addFirst(block);
+            lockedStacks.add(n);
+        }
 	@Override
 	public Action response(Perceptions input)
 	{
@@ -79,17 +92,29 @@ public class MyAgent implements Agent
 		if (perceptions.hasPreviousActionSucceeded())
                 {
                     
-                    if (previousAction.getType()==Type.LOCK){  //Keep track of locks                      
-                        Character station=perceptions.getCurrentStation().getLabel();
-                        if (!lockedStacks.containsKey(station)){
-                            lockedStacks.put(station, new LinkedList<>());
-                        }
-                        LinkedList<Block> st=lockedStacks.get(station);
-                        st.addLast(previousAction.getArgument());
+                    if (previousAction.getType()==Type.LOCK){  //Keep track of locks  
+                        addToLocked(perceptions, previousAction.getArgument());
+                    }
+                    if (previousAction.getType()==Type.PICKUP){  //Keep track of locks                      
+                    
+                        holding=previousAction.getArgument();
+                    }
+                    if (previousAction.getType()==Type.UNSTACK){  //Keep track of locks                      
+                    
+                        holding=previousAction.getFirstArgument();
+                    }
+                    if (previousAction.getType()==Type.PUTDOWN){  //Keep track of locks                      
+                    
+                        holding=null;
+                    }
+                    if (previousAction.getType()==Type.STACK){  //Keep track of locks                      
+                    
+                        holding=null;
                     }
                     boolean something_changed=reviseBeliefs(perceptions);
                     // TODO: revise beliefs; if necessary, make a plan; return an action.
-                    if (something_changed || currentplan.size()<=0){
+                    //something_changed || 
+                    if (currentplan.size()<=0){
                         currentplan=(LinkedList<BlocksWorldAction>)plan(perceptions);
                     }
                 }else{
@@ -97,12 +122,17 @@ public class MyAgent implements Agent
                         //Station is gone
                         Character station=((BlocksWorldEnvironment.Station)previousAction.getArgument()).getLabel();
                         beliefs.remove(station);
+                        if (holding!=null){
+                            action=new BlocksWorldAction(Type.PUTDOWN,previousAction.getArgument());
+                            previousAction=action;
+                            return action;
+                        }    
                         
                     }
                     reviseBeliefs(perceptions);
                     currentplan.clear();
                     if (previousAction.getType()==Type.STACK){
-                        action=new BlocksWorldAction(Type.PUTDOWN,previousAction.getArgument());
+                        action=new BlocksWorldAction(Type.PUTDOWN,previousAction.getFirstArgument());
                     }else{
                         
                         currentplan=(LinkedList<BlocksWorldAction>)plan(perceptions);
@@ -148,6 +178,8 @@ public class MyAgent implements Agent
                 beliefs.put(curr, perceivedWorldState.getVisibleStack());
             }
             
+            
+            
             return false;
 	}
 	protected List<Block> getBottomBlocks(List<Stack> wrld){
@@ -174,7 +206,7 @@ public class MyAgent implements Agent
         }
         protected List<MyLongTermAction> stackPlan(BlocksWorldPerceptions perceptions,Stack stack_todo){
             LinkedList<MyLongTermAction> plan=new LinkedList<>();
-            for(LinkedList<Block> st:lockedStacks.values()){
+            for(LinkedList<Block> st:lockedStacks){
                 Block blBottom=st.getFirst();
                 if (blBottom.equals(stack_todo.getBottomBlock())){
                     Block bl1=st.getLast();
@@ -302,18 +334,19 @@ public class MyAgent implements Agent
                                     //source block is under me
                                     if (perceptions.getVisibleStack().isClear(bl)){                                        
                                         Character targetstation=getStationForBlock(bl2);
-                                        plan.add(new BlocksWorldAction(Type.PICKUP,bl));
+                                        if (perceptions.getVisibleStack().isOnTable(bl))
+                                            plan.add(new BlocksWorldAction(Type.PICKUP,bl));
+                                        else
+                                            plan.add(new BlocksWorldAction(Type.UNSTACK,bl,perceptions.getVisibleStack().getBelow(bl)));
                                         plan.add(new BlocksWorldAction(Type.GO_TO_STATION,new BlocksWorldEnvironment.Station(targetstation)));
                                         plan.add(new BlocksWorldAction(Type.STACK,bl,bl2));
                                         plan.add(new BlocksWorldAction(Type.LOCK,bl));
                                     }else{
-                                        Character targetstation=getStationForBlock(bl);
-                                        plan.add(new BlocksWorldAction(Type.GO_TO_STATION,new BlocksWorldEnvironment.Station(targetstation)));                                        
-                                        plan.add(new BlocksWorldAction(Type.PICKUP,bl));
-                                        targetstation=getStationForBlock(bl2);
-                                        plan.add(new BlocksWorldAction(Type.GO_TO_STATION,new BlocksWorldEnvironment.Station(targetstation)));
-                                        plan.add(new BlocksWorldAction(Type.STACK,bl,bl2));
-                                        plan.add(new BlocksWorldAction(Type.LOCK,bl));
+                                        Block bl3=perceptions.getVisibleStack().getTopBlock();
+                                        plan.add(new BlocksWorldAction(Type.UNSTACK,bl3,perceptions.getVisibleStack().getBelow(bl3)));
+                                        plan.add(new BlocksWorldAction(Type.PUTDOWN,bl3));
+                                        plan.add(new BlocksWorldAction(Type.GO_TO_STATION,perceptions.getCurrentStation()));
+                                        longTermPlan.addFirst(new MyLongTermAction(MyLongTermAction.MyType.STACK,bl,bl2)); //keep the long termplan
                                     }
                                     
                                 }else{
@@ -349,7 +382,7 @@ public class MyAgent implements Agent
             if (longTermPlan.size()<=0){
                 ArrayList<Stack> stacks_todo=new ArrayList<>();
                 stacks_todo.addAll(desired.getStacks());
-                for(LinkedList<Block> st:lockedStacks.values()){
+                for(LinkedList<Block> st:lockedStacks){
                     for(Stack st_d:stacks_todo)
                         if (st_d.getTopBlock().equals(st.getLast())){
                             stacks_todo.remove(st_d);

@@ -21,9 +21,10 @@ public class Map {
     
     private ArrayList<Position> startingPos;
     private ArrayList<Position> targetPos;
-    
+    private ArrayList<Agent> agents;
+   
     class Position{
-        int x,y;
+        private int x,y;
         public Position(int x,int y){
             this.x=x;
             this.y=y;
@@ -44,11 +45,30 @@ public class Map {
             x+=step;
         }
         public void stepY(int step){
-            x+=step;
+            y+=step;
         }
         public void step(int stepX,int stepY){
-            x+=stepX;
-            y+=stepY;
+            this.stepX(stepX);
+            this.stepY(stepY);
+        }
+        public void set(Position newpos){
+            x=newpos.x;
+            y=newpos.y;
+        }
+        public int getX(){
+            return x;
+        }
+        public int getY(){
+            return y;
+        }
+        public void setX(int x){
+            this.x=x;
+        }
+        public void setY(int y){
+            this.y=y;
+        }
+        public String toString(){
+            return String.format("(%d,%d)", x,y);
         }
     }
     
@@ -57,6 +77,10 @@ public class Map {
         cells=new int[SIZE+2][SIZE+2];
         startingPos=new ArrayList<>();
         targetPos=new ArrayList<>();
+        agents=new ArrayList<>();
+        
+        System.out.println(String.format("Generating Map (%d x %d) with %d Agents",SIZE,SIZE,this.nragents));
+        
         for (int i=0;i<cells.length;i++){
             cells[i][0]=1;
             cells[i][cells[0].length-1]=1;
@@ -65,6 +89,7 @@ public class Map {
             cells[0][i]=1;
             cells[cells[0].length-1][i]=1;
         }
+        
         while(startingPos.size()<nrAgents){
             Position p=new Position((int)(Math.random()*SIZE)+1, (int)(Math.random()*SIZE)+1);
             if (!startingPos.contains(p))
@@ -78,7 +103,10 @@ public class Map {
                 targetPos.add(p);
         }
          
+        System.out.println("Making sure paths are possible");
         for (int i=0;i<nrAgents;i++){
+            Agent ag=new Agent(i, startingPos.get(i), targetPos.get(i));
+            agents.add(ag);
             ensurePath(startingPos.get(i), targetPos.get(i));
         }
         for (int i=0;i<OBSTACLES;i++){
@@ -94,22 +122,24 @@ public class Map {
             for (int j=0;j<cells[0].length;j++)
                 if (cells[i][j]==5)
                     cells[i][j]=0;
+        System.out.println("Map done");
     } 
     private void ensurePath(Position pos1,Position pos2){
-        Position p=new Position(pos1.x,pos1.y);
+        Position p=new Position(pos1.getX(),pos1.getY());
         
         while (!p.equals(pos2)){
-            int dx=(int)Math.signum(pos2.x-p.x);            
-            int dy=(int)Math.signum(pos2.y-p.y);
-            
+            int dx=(int)Math.signum(pos2.getX()-p.getX());            
+            int dy=(int)Math.signum(pos2.getY()-p.getY());
+
+
             double r=Math.random();
-            if (r<0.20)
+            if (r<0.20 && p.getX()-dx>=0 && p.getX()-dx<SIZE)
                 dx=-dx;
-            if (r>=0.15&&r<0.4)
+            if (r>=0.15&&r<0.4 && p.getY()-dy>=0 && p.getY()-dy<SIZE)
                 dy=-dy;
-            if (cells[p.x+dx][p.y+dy]!=1){
+            if (cells[p.getX()+dx][p.getY()+dy]!=1){
                 p.step(dx, dy);
-                cells[p.x][p.y]=5;
+                cells[p.getX()][p.getY()]=5;
             }
         }       
     }
@@ -121,6 +151,20 @@ public class Map {
     {
         return startingPos;
     }
+    public static boolean isAdjacent(Position p1,Position p2){
+        if (p1.equals(p2))
+            return false;
+        return (Math.abs(p1.getX()-p2.getX())<=1)&& (Math.abs(p1.getY()-p2.getY())<=1);
+    }
+    public Agent getAgent(int i){
+        if (i>=agents.size())
+            throw new IllegalArgumentException(String.format("There is no Keyser Soze - Agent %d",i));
+        return agents.get(i);
+    }
+    public ArrayList<Agent> getAllAgents(){
+        return agents;
+    }
+    
     public String toString()
     {
         StringBuilder sb=new StringBuilder();
@@ -134,21 +178,22 @@ public class Map {
                     line1+="####";
                     line2+="####";
                 }else{
-                    
-                    if (cells[i][j]==5){
-                        line1+=" *  ";
-                        line2+=" *  ";
-                    }else
-                    if (startingPos.contains(new Position(i, j)))
-                    {
-                        line1+=" S  ";
-                        line2+=" S  ";
-                    }else
-                    if (targetPos.contains(new Position(i, j)))
-                    {
-                        line1+=" G  ";
-                        line2+=" G  ";
-                    }else
+                    boolean b=false;
+                    for(Agent ag:agents){
+                        if (ag.getPosition().equals(new Position(i, j))){
+                            line1+=String.format(" A%d ",ag.getId());
+                            line2+=" AA ";
+                            b=true;
+                            break;
+                        }else
+                            if (ag.getGoal().equals(new Position(i, j))){
+                                line1+=String.format(" G%d ",ag.getId());
+                                line2+=" GG ";
+                                b=true;
+                                break;
+                            }
+                    }
+                    if (!b)
                     {
                         line1+="    ";
                         line2+="    ";

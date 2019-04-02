@@ -51,7 +51,7 @@ public class RegistrationReceiveBehavior extends TickerBehaviour {
 			stop();
 			
 			// TODO: comment this out once you add the other behaviors as well
-			myAgent.doDelete();
+			//myAgent.doDelete();
 		}
 	}
 	

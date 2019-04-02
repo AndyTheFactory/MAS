@@ -16,9 +16,9 @@ public class Pathfinding {
      */
     public static void main(String[] args) {
         // TODO code application logic here
+        Gridworld gw=new Gridworld(5);
         
-        Map m=new Map(5);
-        System.out.println(m);
+        System.out.println(gw);
     }
     
 }

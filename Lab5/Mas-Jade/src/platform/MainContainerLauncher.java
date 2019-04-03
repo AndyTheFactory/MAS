@@ -17,6 +17,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import agents.MyAgent;
+import behaviors.ParentOneShotBehaviour;
+import jade.wrapper.ControllerException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Launches a main container and associated agents.
@@ -100,20 +104,6 @@ public class MainContainerLauncher {
             e.printStackTrace();
         }
     }
-    void triggerAction(){
-        try {
-            for (Integer agId : agentConfig.keySet()) {
-                int parentId = (Integer) agentConfig.get(agId).get("parentId");
-                if (parentId == 0) {
-                    
-                }
-            }
-
-        } catch (StaleProxyException e) {
-            e.printStackTrace();
-        }
-        
-    }
     /**
      * Launches the main container.
      *
@@ -126,8 +116,6 @@ public class MainContainerLauncher {
             launcher.readConfig();
             launcher.setupPlatform();
             launcher.startAgents();
-            
-            launcher.triggerAction();
                                 
         } catch (IOException e) {
             e.printStackTrace();

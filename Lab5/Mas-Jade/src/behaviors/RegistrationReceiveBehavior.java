@@ -47,7 +47,9 @@ public class RegistrationReceiveBehavior extends TickerBehaviour {
 		}
 		
 		// if number of ticks surpassed, take down the agent
-		if (getTickCount() >= MAX_TICKS) {			
+		if (getTickCount() >= MAX_TICKS) {
+			myAgent.addBehaviour(new ParentOneShotBehaviour(myAgent));
+                        
 			stop();
 			
 			// TODO: comment this out once you add the other behaviors as well

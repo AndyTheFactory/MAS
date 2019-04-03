@@ -15,19 +15,20 @@ import jade.lang.acl.ACLMessage;
  *
  * @author andrei
  */
-public class ParentOneShotBehaviour extends OneShotBehaviour {
-    private static final long serialVersionUID = -8741442323235457781L;
-    public ParentOneShotBehaviour(Agent a){
+public class LeafOneShotBehaviour extends OneShotBehaviour{
+    private static final long serialVersionUID = -8741412321321357781L;
+    public LeafOneShotBehaviour(Agent a){
         super(a);
     }
     public void action() {
-        for(AID child:((MyAgent)myAgent).getChildAgents()){
             ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
             msg.setConversationId("request-value");
-            msg.setReplyWith("ask-value");
-            msg.addReceiver(child);
-
+            msg.setReplyWith(((MyAgent)myAgent).getValue().toString());
+            msg.setInReplyTo("ask-value");
+            msg.addReceiver(((MyAgent)myAgent).getParentAID());
+            
             myAgent.send(msg);
-        }
+            myAgent.doDelete();
     }
+    
 }

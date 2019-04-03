@@ -1,5 +1,7 @@
 package agents;
 
+import behaviors.AllListenToMessages;
+import behaviors.ParentOneShotBehaviour;
 import jade.core.AID;
 import jade.core.Agent;
 
@@ -33,11 +35,22 @@ public class MyAgent extends Agent {
 	public void addChildAgent(AID childAID) {
 		childAgents.add(childAID);
 	}
+	public void delChildAgent(AID childAID) {
+		childAgents.remove(childAID);
+	}
 	
 	public List<AID> getChildAgents() {
 		return childAgents;
 	}
-	
+	public AID getParentAID(){
+            return parentAID;
+        }
+        public Integer getValue(){
+            return agentValue;
+        }
+        public void setValue(Integer val){
+            agentValue=val;
+        }
 	@Override
 	protected void setup() {
 		parentAID = (AID)getArguments()[0];
@@ -56,14 +69,14 @@ public class MyAgent extends Agent {
 		
 		// add the RegistrationReceiveBehavior
 		addBehaviour(new RegistrationReceiveBehavior(this));
+                addBehaviour(new AllListenToMessages(this));
 	}
 
 	
 	@Override
 	protected void takeDown() {
 		// Printout a dismissal message
-		
-		System.out.println("Agent " + getAID().getName() + " has the following children");
+		System.out.println("Agent " + getAID().getName() + " knows this max value "+getValue().toString());
 		System.out.print("\t");
 		
 		for (AID childAID : childAgents) {

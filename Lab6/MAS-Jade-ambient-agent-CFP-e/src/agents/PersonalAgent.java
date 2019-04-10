@@ -1,5 +1,6 @@
 package agents;
 
+import agents.behaviors.AgentCheckPreferencesBehavior;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.ParallelBehaviour;
@@ -156,6 +157,8 @@ public class PersonalAgent extends Agent {
 
         // add the parallel behavior
         addBehaviour(ambientDiscoveryBehavior);
+        
+        addBehaviour(new AgentCheckPreferencesBehavior(this));
 
     }
 
@@ -163,5 +166,8 @@ public class PersonalAgent extends Agent {
     protected void takeDown() {
         // Printout a dismissal message
         System.out.println("PersonalAgent " + getAID().getName() + " terminating.");
+    }
+    public AID getPreferenceAgent(){
+        return preferenceAgent;
     }
 }

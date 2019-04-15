@@ -1,5 +1,6 @@
 package agents;
 
+import data.Preferences;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
@@ -9,35 +10,14 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
+
 public class PreferenceAgent extends Agent
 {
     private static final long serialVersionUID = -3397689918969697329L;
 
-    static final int WAKE_SUPERSOFT = 0;
-    static final int WAKE_SOFT = 1;
-    static final int WAKE_HARD = 2;
+    private Preferences preference;
 
-    private MyPreferences preference;
-
-    class MyPreferences
-    {
-
-        int[] wakeHours;//Minute of the day
-        int[] wakeStyle;
-
-        public MyPreferences()
-        {
-            wakeHours = new int[7];
-            wakeStyle = new int[7];
-            for (int i = 0; i < wakeHours.length; i++)
-            { // Random
-                wakeHours[i] = (int) (Math.random() * 24 * 60);
-                wakeStyle[i] = (int) (Math.random() * 3);
-            }
-
-        }
-    }
-    public MyPreferences getPreferences(){
+    public Preferences getPreferences(){
         return this.preference;
                 
     }
@@ -59,7 +39,7 @@ public class PreferenceAgent extends Agent
     {
         System.out.println("Hello from PreferenceAgent");
 
-        preference=new MyPreferences();
+        preference=new Preferences();
         
         addBehaviour(new CyclicBehaviour()
                 {
@@ -74,7 +54,7 @@ public class PreferenceAgent extends Agent
                                 msg.setConversationId("preference-value");
                                 msg.setReplyWith(((PreferenceAgent)myAgent).getPreferences().toString());
                                 msg.setInReplyTo("request-preferences");                                
-                                msg.addReceiver(msg.getSender());
+                                msg.addReceiver(receivedMsg.getSender());
 
                                 myAgent.send(msg);
                         }

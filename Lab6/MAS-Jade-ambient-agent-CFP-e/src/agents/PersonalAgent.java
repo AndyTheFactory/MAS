@@ -17,6 +17,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 import agents.behaviors.AmbientServiceDiscoveryBehavior;
+import data.Preferences;
+import jade.core.behaviours.CyclicBehaviour;
+import jade.domain.FIPANames;
+import jade.lang.acl.MessageTemplate;
+import java.util.Calendar;
 
 /**
  * The PersonalAgent.
@@ -37,6 +42,7 @@ public class PersonalAgent extends Agent {
      * Known preference agent
      */
     AID preferenceAgent;
+    
 
     @Override
     protected void setup() {
@@ -160,6 +166,39 @@ public class PersonalAgent extends Agent {
         
         addBehaviour(new AgentCheckPreferencesBehavior(this));
 
+        addBehaviour(
+                new CyclicBehaviour()
+                {
+                    @Override
+                    public void action()
+                    {
+                        ACLMessage receivedMsg = myAgent.receive(getMessageTemplate());
+
+                        // register the agent if message received
+                        if (receivedMsg != null) {
+                            
+                                Preferences prefs=new Preferences(receivedMsg.getReplyWith());
+                                //if (prefs.getWakeMinute(Calendar.DAY_OF_WEEK)==Preferences.getMinuteInDay()){
+                                if (Math.random()>0.7){
+                                    //Start Wake up
+                                    ACLMessage msg = new ACLMessage(ACLMessage.CFP);
+                                    msg.setProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET);
+                                    msg.setConversationId("request-service");
+                                    int stil=prefs.getWakeStyle(Calendar.DAY_OF_WEEK-1);
+                                    msg.setContent(String.valueOf(stil));
+                                    for(AID a:ambientAgents)
+                                        msg.addReceiver(a);
+                                    myAgent.send(msg);
+                                    
+                                    
+                                }
+                        }
+                    }
+                }
+        );
+
+        
+        
     }
 
     @Override
@@ -169,5 +208,19 @@ public class PersonalAgent extends Agent {
     }
     public AID getPreferenceAgent(){
         return preferenceAgent;
+    }
+    private MessageTemplate getMessageTemplate(){
+            return new MessageTemplate(new MessageTemplate.MatchExpression() {
+                    private static final long serialVersionUID = 3L;
+
+                    @Override
+                    public boolean match(ACLMessage msg) {
+                   //         return true;
+                            return (msg.getPerformative() == ACLMessage.INFORM && 
+                                        msg.getConversationId().equals("preference-value")
+                                    );
+                    }
+            });        
+        
     }
 }

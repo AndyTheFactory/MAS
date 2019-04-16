@@ -60,7 +60,7 @@ public class PhoneAlarmAgent extends AmbientAgent {
 
     @Override
     public boolean hasCapability(int style) {
-        return (style == Preferences.WAKE_SOFT || style == Preferences.WAKE_SUPERSOFT);
+        return (style == Preferences.WAKE_SOFT || style == Preferences.WAKE_HARD);
     }
 
 }

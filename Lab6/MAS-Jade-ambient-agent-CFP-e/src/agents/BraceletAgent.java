@@ -1,15 +1,20 @@
 package agents;
 
+import agents.behaviors.AgentResponderBehavior;
+import data.Preferences;
 import jade.core.Agent;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.domain.FIPANames;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 
 /**
  * The BraceletAgent.
  */
-public class BraceletAgent extends Agent {
+public class BraceletAgent extends AmbientAgent {
 	/**
 	 * The serial UID.
 	 */
@@ -31,6 +36,10 @@ public class BraceletAgent extends Agent {
 		} catch (FIPAException fe) {
 			fe.printStackTrace();
 		}
+                MessageTemplate template = MessageTemplate.and(
+				MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET),
+				MessageTemplate.MatchPerformative(ACLMessage.CFP) );
+                addBehaviour(new AgentResponderBehavior(this, template));
 	}
 
 	@Override
@@ -45,5 +54,10 @@ public class BraceletAgent extends Agent {
 		// Printout a dismissal message
 		System.out.println("BraceletAgent " + getAID().getName() + " terminating.");
 	}
+
+    @Override
+    public boolean hasCapability(int style) {
+        return (style==Preferences.WAKE_SOFT || style==Preferences.WAKE_SUPERSOFT);
+    }
 
 }

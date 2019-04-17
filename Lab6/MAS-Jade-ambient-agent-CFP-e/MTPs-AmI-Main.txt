@@ -1,1 +1,1 @@
-http://SNOOPY.infodata.com.ro:7778/acc
+http://MANIAC:7778/acc

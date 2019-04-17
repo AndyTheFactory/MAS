@@ -1,6 +1,7 @@
 package agents;
 
 import agents.behaviors.AgentCheckPreferencesBehavior;
+import agents.behaviors.AgentResponderBehavior;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.ParallelBehaviour;
@@ -17,16 +18,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 import agents.behaviors.AmbientServiceDiscoveryBehavior;
-<<<<<<< HEAD
-import jade.core.behaviours.CyclicBehaviour;
-import jade.lang.acl.MessageTemplate;
-=======
 import data.Preferences;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.FIPANames;
 import jade.lang.acl.MessageTemplate;
 import java.util.Calendar;
->>>>>>> e7190657ea4efbee84a0381f3566e5474987e7dd
 
 /**
  * The PersonalAgent.
@@ -47,12 +43,7 @@ public class PersonalAgent extends Agent {
      * Known preference agent
      */
     AID preferenceAgent;
-<<<<<<< HEAD
     String wakeupPreferences;
-=======
-    
->>>>>>> e7190657ea4efbee84a0381f3566e5474987e7dd
-
     @Override
     protected void setup() {
         System.out.println("Hello from PersonalAgent");
@@ -174,41 +165,28 @@ public class PersonalAgent extends Agent {
         addBehaviour(ambientDiscoveryBehavior);
         
         addBehaviour(new AgentCheckPreferencesBehavior(this));
+        MessageTemplate template = new MessageTemplate(new MessageTemplate.MatchExpression() {
+                    private static final long serialVersionUID = 3L;
 
-<<<<<<< HEAD
-        addBehaviour(new CyclicBehaviour()
-=======
+                    @Override
+                    public boolean match(ACLMessage msg) {
+                   //         return true;
+                            return (
+                                    (msg.getPerformative() == ACLMessage.INFORM || 
+                                    msg.getPerformative() == ACLMessage.PROPOSE ||
+                                    msg.getPerformative() == ACLMessage.REFUSE ) &&
+                                        msg.getProtocol()== FIPANames.InteractionProtocol.FIPA_CONTRACT_NET 
+                                    );
+                    }
+            });;        
+        addBehaviour(new AgentResponderBehavior(this,template));
+
         addBehaviour(
                 new CyclicBehaviour()
->>>>>>> e7190657ea4efbee84a0381f3566e5474987e7dd
                 {
                     @Override
                     public void action()
                     {
-<<<<<<< HEAD
-                        ACLMessage receivedMsg = myAgent.receive(
-                            new MessageTemplate(new MessageTemplate.MatchExpression() {
-                                    private static final long serialVersionUID = 2L;
-
-                                    @Override
-                                    public boolean match(ACLMessage msg)
-                                    {
-                                        return (msg.getPerformative() == ACLMessage.INFORM && msg.getConversationId().equals("preference-value"));
-                                    }
-                                })
-                        );
-
-                        // register the agent if message received
-                        if (receivedMsg != null) {
-                            ((PersonalAgent)myAgent).
-                                ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-                                msg.setConversationId("preference-value");
-                                msg.setReplyWith(((PreferenceAgent)myAgent).getPreferences().toString());
-                                msg.setInReplyTo("request-preferences");                                
-                                msg.addReceiver(msg.getSender());
-
-                                myAgent.send(msg);
-=======
                         ACLMessage receivedMsg = myAgent.receive(getMessageTemplate());
 
                         // register the agent if message received
@@ -229,17 +207,12 @@ public class PersonalAgent extends Agent {
                                     
                                     
                                 }
->>>>>>> e7190657ea4efbee84a0381f3566e5474987e7dd
                         }
                     }
                 }
         );
 
         
-<<<<<<< HEAD
-=======
-        
->>>>>>> e7190657ea4efbee84a0381f3566e5474987e7dd
     }
 
     @Override
@@ -250,9 +223,6 @@ public class PersonalAgent extends Agent {
     public AID getPreferenceAgent(){
         return preferenceAgent;
     }
-<<<<<<< HEAD
-    
-=======
     private MessageTemplate getMessageTemplate(){
             return new MessageTemplate(new MessageTemplate.MatchExpression() {
                     private static final long serialVersionUID = 3L;
@@ -267,5 +237,4 @@ public class PersonalAgent extends Agent {
             });        
         
     }
->>>>>>> e7190657ea4efbee84a0381f3566e5474987e7dd
 }

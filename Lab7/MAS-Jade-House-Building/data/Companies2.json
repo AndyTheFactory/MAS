@@ -1,0 +1,106 @@
+{
+    "companies": [
+        {
+            "name": "A",
+            "specialties": [
+                {
+                    "specialty": "structural design",
+                    "cost": 6150
+                },
+                {
+                    "specialty": "building",
+                    "cost": 8450
+                },
+                {
+                    "specialty": "electrics & plumbing",
+                    "cost": 3800
+                }
+            ]
+        },
+        {
+            "name": "B",
+            "specialties": [
+                {
+                    "specialty": "structural design",
+                    "cost": 3602
+                },
+                {
+                    "specialty": "building",
+                    "cost": 11000
+                },
+                {
+                    "specialty": "electrics & plumbing",
+                    "cost": 3900
+                }
+            ]
+        },
+        {
+            "name": "C",
+            "specialties": [
+                {
+                    "specialty": "interior design",
+                    "cost": 5200
+                },
+                {
+                    "specialty": "building",
+                    "cost": 8520
+                },
+                {
+                    "specialty": "electrics & plumbing",
+                    "cost": 3300
+                }
+            ]
+        },
+        {
+            "name": "D",
+            "specialties": [
+                {
+                    "specialty": "building",
+                    "cost": 9500
+                },
+                {
+                    "specialty": "electrics & plumbing",
+                    "cost": 3800
+                },
+                {
+                    "specialty": "interior design",
+                    "cost": 5500
+                }
+            ]
+        },
+        {
+            "name": "E",
+            "specialties": [
+                {
+                    "specialty": "building",
+                    "cost": 6200
+                },
+                {
+                    "specialty": "electrics & plumbing",
+                    "cost": 3100
+                },
+                {
+                    "specialty": "interior design",
+                    "cost": 5300
+                }
+            ]
+        },
+        {
+            "name": "F",
+            "specialties": [
+                {
+                    "specialty": "structural design",
+                    "cost": 4900
+                },
+                {
+                    "specialty": "interior design",
+                    "cost": 4450
+                },
+                {
+                    "specialty": "building",
+                    "cost": 10500
+                },
+            ]
+        },
+    ]
+}

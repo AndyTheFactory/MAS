@@ -1,0 +1,20 @@
+{
+	"elements": [
+		{
+			"name": "structural design",
+			"budget": 5000
+		},
+		{
+			"name": "building",
+			"budget": 10000
+		},
+		{
+			"name": "electrics & plumbing",
+			"budget": 4000
+		},
+		{
+			"name": "interior design",
+			"budget": 5000
+		}
+	]
+}

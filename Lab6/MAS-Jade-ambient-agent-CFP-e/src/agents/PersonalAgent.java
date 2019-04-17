@@ -17,6 +17,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import agents.behaviors.AmbientServiceDiscoveryBehavior;
+import jade.core.behaviours.CyclicBehaviour;
+import jade.lang.acl.MessageTemplate;
 
 /**
  * The PersonalAgent.
@@ -37,6 +39,7 @@ public class PersonalAgent extends Agent {
      * Known preference agent
      */
     AID preferenceAgent;
+    String wakeupPreferences;
 
     @Override
     protected void setup() {
@@ -160,6 +163,39 @@ public class PersonalAgent extends Agent {
         
         addBehaviour(new AgentCheckPreferencesBehavior(this));
 
+        addBehaviour(new CyclicBehaviour()
+                {
+                    @Override
+                    public void action()
+                    {
+                        ACLMessage receivedMsg = myAgent.receive(
+                            new MessageTemplate(new MessageTemplate.MatchExpression() {
+                                    private static final long serialVersionUID = 2L;
+
+                                    @Override
+                                    public boolean match(ACLMessage msg)
+                                    {
+                                        return (msg.getPerformative() == ACLMessage.INFORM && msg.getConversationId().equals("preference-value"));
+                                    }
+                                })
+                        );
+
+                        // register the agent if message received
+                        if (receivedMsg != null) {
+                            ((PersonalAgent)myAgent).
+                                ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                                msg.setConversationId("preference-value");
+                                msg.setReplyWith(((PreferenceAgent)myAgent).getPreferences().toString());
+                                msg.setInReplyTo("request-preferences");                                
+                                msg.addReceiver(msg.getSender());
+
+                                myAgent.send(msg);
+                        }
+                    }
+                }
+        );
+
+        
     }
 
     @Override
@@ -170,4 +206,5 @@ public class PersonalAgent extends Agent {
     public AID getPreferenceAgent(){
         return preferenceAgent;
     }
+    
 }

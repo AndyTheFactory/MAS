@@ -16,7 +16,7 @@ import jade.lang.acl.ACLMessage;
  */
 public class AgentCheckPreferencesBehavior extends TickerBehaviour
 {
-    public static final int TICK_PERIOD = 5000;
+    public static final int TICK_PERIOD = 10000;
 
     public AgentCheckPreferencesBehavior(Agent a)
     {

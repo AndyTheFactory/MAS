@@ -5,6 +5,7 @@
  */
 package agents.behaviors;
 
+import agents.PersonalAgent;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.domain.FIPANames;
@@ -19,24 +20,22 @@ import java.util.Vector;
  * @author Dell
  */
 public class AgentInitiatorBehavior extends ContractNetInitiator {
-
-    public AgentInitiatorBehavior(Agent a, ACLMessage cfp) {
+    private int wakeUpStyle=-1;
+    
+    public AgentInitiatorBehavior(Agent a,  ACLMessage cfp) {
         super(a, cfp);
     }
 
-    @Override
     protected void handlePropose(ACLMessage propose, Vector v) {
         System.out.println("Agent " + propose.getSender().getName() + " proposed " + propose.getContent());
         Enumeration e = v.elements();
-        int accepted=0;
+        int accepted = 0;
     }
 
-    @Override
     protected void handleRefuse(ACLMessage refuse) {
         System.out.println("Agent " + refuse.getSender().getName() + " refused");
     }
 
-    @Override
     protected void handleFailure(ACLMessage failure) {
         if (failure.getSender().equals(myAgent.getAMS())) {
             // FAILURE notification from the JADE runtime: the receiver
@@ -45,5 +44,14 @@ public class AgentInitiatorBehavior extends ContractNetInitiator {
         } else {
             System.out.println("Agent " + failure.getSender().getName() + " failed");
         }
+    }
+
+    protected void handleAllResponses(Vector responses, Vector acceptances) {
+        System.out.println("Handle Responses: " + responses.size() + " responses " + responses.toString());
+    }
+
+    @Override
+    protected void handleInform(ACLMessage inform) {
+        System.out.println("Agent " + inform.getSender().getName() + " successfully performed the requested action");
     }
 }

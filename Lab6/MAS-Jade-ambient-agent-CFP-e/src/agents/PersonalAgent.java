@@ -1,6 +1,7 @@
 package agents;
 
 import agents.behaviors.AgentCheckPreferencesBehavior;
+import agents.behaviors.AgentInitiatorBehavior;
 import agents.behaviors.AgentResponderBehavior;
 import jade.core.AID;
 import jade.core.Agent;
@@ -33,7 +34,11 @@ public class PersonalAgent extends Agent {
      * The serial UID.
      */
     private static final long serialVersionUID = 2081456560111009192L;
-
+    
+    private static int STATE_NONE=0;
+    private static int STATE_ASKING=1;
+    private static int STATE_DELEGATED=2;
+    
     /**
      * Known ambient agents.
      */
@@ -44,6 +49,10 @@ public class PersonalAgent extends Agent {
      */
     AID preferenceAgent;
     String wakeupPreferences;
+    
+    int currentState;
+    
+    
     @Override
     protected void setup() {
         System.out.println("Hello from PersonalAgent");
@@ -165,21 +174,6 @@ public class PersonalAgent extends Agent {
         addBehaviour(ambientDiscoveryBehavior);
         
         addBehaviour(new AgentCheckPreferencesBehavior(this));
-        MessageTemplate template = new MessageTemplate(new MessageTemplate.MatchExpression() {
-                    private static final long serialVersionUID = 3L;
-
-                    @Override
-                    public boolean match(ACLMessage msg) {
-                   //         return true;
-                            return (
-                                    (msg.getPerformative() == ACLMessage.INFORM || 
-                                    msg.getPerformative() == ACLMessage.PROPOSE ||
-                                    msg.getPerformative() == ACLMessage.REFUSE ) &&
-                                        msg.getProtocol()== FIPANames.InteractionProtocol.FIPA_CONTRACT_NET 
-                                    );
-                    }
-            });;        
-        addBehaviour(new AgentResponderBehavior(this,template));
 
         addBehaviour(
                 new CyclicBehaviour()
@@ -193,17 +187,24 @@ public class PersonalAgent extends Agent {
                         if (receivedMsg != null) {
                             
                                 Preferences prefs=new Preferences(receivedMsg.getReplyWith());
+                                ((PersonalAgent) myAgent).wakeupPreferences=receivedMsg.getReplyWith();
+                                
                                 //if (prefs.getWakeMinute(Calendar.DAY_OF_WEEK)==Preferences.getMinuteInDay()){
-                                if (Math.random()>0.7){
+                                if (((PersonalAgent) myAgent).getCurrentState()==PersonalAgent.STATE_NONE && Math.random()>0.7){
                                     //Start Wake up
-                                    ACLMessage msg = new ACLMessage(ACLMessage.CFP);
-                                    msg.setProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET);
-                                    msg.setConversationId("request-service");
                                     int stil=prefs.getWakeStyle(Calendar.DAY_OF_WEEK-1);
-                                    msg.setContent(String.valueOf(stil));
-                                    for(AID a:ambientAgents)
-                                        msg.addReceiver(a);
-                                    myAgent.send(msg);
+                                    ((PersonalAgent) myAgent).setCurrentState(PersonalAgent.STATE_ASKING);
+                                    
+                                    ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
+                                    cfp.setProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET);
+                                    for(AID a:((PersonalAgent) myAgent).getAmbientAgents())
+                                        cfp.addReceiver(a);
+        
+                                    cfp.setConversationId("request-service");
+        
+                                    cfp.setContent(String.valueOf(stil));
+                                    
+                                    addBehaviour(new AgentInitiatorBehavior(myAgent, cfp));
                                     
                                     
                                 }
@@ -236,5 +237,14 @@ public class PersonalAgent extends Agent {
                     }
             });        
         
+    }
+    public List<AID> getAmbientAgents(){
+        return ambientAgents;
+    }
+    public int getCurrentState(){
+        return currentState;
+    }
+    public void setCurrentState(int state){
+        currentState=state;
     }
 }

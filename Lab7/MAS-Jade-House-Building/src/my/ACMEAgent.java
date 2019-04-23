@@ -1,6 +1,7 @@
 package my;
 
 import behaviour.DutchAuctionBehaviour;
+import behaviour.StatusReportBehaviour;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -31,11 +32,12 @@ public class ACMEAgent extends Agent {
      * The serial UID.
      */
     private static final long serialVersionUID = 2897763463127840876L;
-    private static float EPSILON=.03f;
+    private static float EPSILON = .03f;
+    public static float MAX_DUTCH_ITERATIONS=3;
     /**
      * Statuses.
      */
-    Map<String, ContractingStatus> statuses = new LinkedHashMap<>();
+    Map<String, ArrayList<ContractingStatus>> statuses = new LinkedHashMap<>();
     /**
      * Who can do each item.
      */
@@ -55,7 +57,10 @@ public class ACMEAgent extends Agent {
 
         for (String item : items.keySet()) {
             // create item information
-            statuses.put(item, new ContractingStatus(item, items.get(item)));
+            ArrayList<ContractingStatus> st=new ArrayList<>();
+            st.add(new ContractingStatus(item, items.get(item));
+            statuses.put(item, st);
+            
             potentialContractors.put(item, new HashSet<>());
             serviceNames.add(item);
             bugets.put(item, items.get(item));
@@ -83,9 +88,15 @@ public class ACMEAgent extends Agent {
         } catch (InterruptedException ex) {
             Logger.getLogger(ACMEAgent.class.getName()).log(Level.SEVERE, null, ex);
         }
-        if (serviceNames.size() > 0) {
-            startAuction(serviceNames.get(0));
+
+        addBehaviour(new StatusReportBehaviour(this, 5000));
+
+        for (String serviceName : serviceNames) {
+            startAuction(serviceName);
         }
+        /*if (serviceNames.size() > 0) {
+            startAuction(serviceNames.get(0));
+        }*/
     }
 
     private void startAuction(String serviceName) {
@@ -97,7 +108,7 @@ public class ACMEAgent extends Agent {
 
         int budget = this.bugets.get(serviceName);
 
-        int startPrice = (int) Math.round((float) (budget / 3) + ((Math.random() - 0.5) * (EPSILON * budget)));
+        int startPrice = (int) Math.round((float) (budget / MAX_DUTCH_ITERATIONS) + ((Math.random() - 0.5) * (EPSILON * budget)));
 
         ACLMessage msg = new ACLMessage(ACLMessage.CFP);
         for (AID a : potentialContractors.get(serviceName)) {
@@ -107,19 +118,19 @@ public class ACMEAgent extends Agent {
         // We want to receive a reply in 10 secs
         msg.setReplyByDate(new Date(System.currentTimeMillis() + 30000));
         msg.setConversationId(serviceName);
-        msg.setContent(String.valueOf(startPrice) + "\n1"); //Price <CR> Request #
+        msg.setContent(String.valueOf(startPrice)); //Price <CR> Request #
 
-        addBehaviour(new DutchAuctionBehaviour(this, msg, serviceName, startPrice));
-        
-        ContractingStatus status=getContractingStatus(serviceName);
-        status.updatePhase(ContractingStatus.ContractingPhase.CONTRACTING);
+        ContractingStatus status = getContractingStatus(serviceName);
+        status.updatePhase(ContractingStatus.ContractingPhase.INITIAL);
         status.updateProposedPrices(startPrice, -1);
         status.newNegotiationRound();
-        
-        Log.log(this, String.format("Round %d <%s> asking for '%s' ... %d Price",status.getNegotiationRound(), this.getLocalName(), serviceName,startPrice));
-        this.send(msg);
+
+        Log.log(this, String.format("Round %d <%s> asking for '%s' ... %d Price", status.getNegotiationRound(), this.getLocalName(), serviceName, startPrice));
+
+        addBehaviour(new DutchAuctionBehaviour(this, msg, serviceName, status));
 
     }
+
     public void continueAuction(String serviceName) {
 
         if (potentialContractors.get(serviceName) == null || potentialContractors.get(serviceName).size() <= 0) {
@@ -128,14 +139,16 @@ public class ACMEAgent extends Agent {
         }
 
         int budget = this.bugets.get(serviceName);
-        ContractingStatus status=getContractingStatus(serviceName);
-        
-        int lastPrice=status.getMyLastPrice();
+        ContractingStatus status = getContractingStatus(serviceName);
 
-        int newPrice = lastPrice+(int) Math.round((float) (budget / 3) + ((Math.random() - 0.5) * (EPSILON * budget)));
-        
-        if (newPrice>budget) newPrice=budget;
-        
+        int lastPrice = status.getMyLastPrice();
+
+        int newPrice = lastPrice + (int) Math.round((float) (budget / MAX_DUTCH_ITERATIONS) + ((Math.random() - 0.5) * (EPSILON * budget)));
+
+        if (newPrice > budget) {
+            newPrice = budget;
+        }
+
         status.newNegotiationRound();
 
         ACLMessage msg = new ACLMessage(ACLMessage.CFP);
@@ -146,30 +159,83 @@ public class ACMEAgent extends Agent {
         // We want to receive a reply in 10 secs
         msg.setReplyByDate(new Date(System.currentTimeMillis() + 30000));
         msg.setConversationId(serviceName);
-        msg.setContent(String.valueOf(newPrice) + "\n"+status.getNegotiationRound()); //Price <CR> Request #
+        msg.setContent(String.valueOf(newPrice)); //Price <CR> Request #
 
-        addBehaviour(new DutchAuctionBehaviour(this, msg, serviceName, newPrice));
-        
         status.updatePhase(ContractingStatus.ContractingPhase.CONTRACTING);
         status.updateProposedPrices(newPrice, -1);
-        
-        Log.log(this, String.format("Round %d <%s> asking for '%s' ... %d Price",status.getNegotiationRound(), this.getLocalName(), serviceName,newPrice));
-        this.send(msg);
 
+        Log.log(this, String.format("Round %d <%s> asking for '%s' ... %d Price", status.getNegotiationRound(), this.getLocalName(), serviceName, newPrice));
+
+        addBehaviour(new DutchAuctionBehaviour(this, msg, serviceName, status));
+
+    }
+    public void makeMonotonic(String serviceName){
+        makeMonotonic(serviceName,0);
+    }
+    public void makeMonotonic(String serviceName, int price){
+        ContractingStatus status = getContractingStatus(serviceName);
+        
+        if (status.getContractingPhase()<>ContractingStatus.ContractingPhase.NEGOTIATING) {
+            Log.log(this, String.format("<%s> there are no negociations in progress...", serviceName));
+            return;
+        }
+        
+        if (price>0){
+            
+        }else{
+            
+        }
+        
+        
     }
 
     public ContractingStatus getContractingStatus(String serviceName) {
         if (!statuses.containsKey(serviceName)) {
             throw new IllegalArgumentException("Unknown Service Name for getStatus: " + serviceName);
         }
+        return statuses.get(serviceName).get(0);
+    }
+    public ArrayList<ContractingStatus> getContractingStatusList(String serviceName) {
+        if (!statuses.containsKey(serviceName)) {
+            throw new IllegalArgumentException("Unknown Service Name for getStatus: " + serviceName);
+        }
         return statuses.get(serviceName);
     }
 
-    public void setContractingStatus(String serviceName, ContractingStatus status) {
+
+    public void addContractingStatus(String serviceName, ContractingStatus status) {
         if (!statuses.containsKey(serviceName)) {
             throw new IllegalArgumentException("Unknown Service Name for setStatus: " + serviceName);
         }
-        statuses.put(serviceName, status);
+        getContractingStatusList(serviceName).add(status);
     }
 
+    public String printContractingStatuses() {
+        StringBuilder sb = new StringBuilder();
+        for (String s : serviceNames) {
+            ContractingStatus status = getContractingStatus(s);
+            sb.append("  " + s + ": \n");
+
+            if (status.getContractingPhase() == ContractingStatus.ContractingPhase.INITIAL) {
+                sb.append("    Initiating ...");
+            }
+            if (status.getContractingPhase() == ContractingStatus.ContractingPhase.DONE) {
+                if (status.getPartner() == null) {
+                    sb.append("    No contractor found ... END");
+                } else {
+                    sb.append("    Contractor '" + status.getPartner().getLocalName() + "' final price " + status.getPartnerLastPrice());
+                }
+            }
+            if (status.getContractingPhase() == ContractingStatus.ContractingPhase.CONTRACTING) {
+                sb.append("    proposing price " + status.getMyLastPrice());
+            }
+            if (status.getContractingPhase() == ContractingStatus.ContractingPhase.NEGOTIATING) {
+                sb.append("    negociating with '" + status.getPartner().getLocalName() + "' prices:\n");
+                sb.append("                                       Mine " + status.getMyLastPrice() + "\n");
+                sb.append("                                       Theirs " + status.getPartnerLastPrice() + "\n");
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
 }

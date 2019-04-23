@@ -201,7 +201,7 @@ public class PersonalAgent extends Agent {
                                         cfp.addReceiver(a);
         
                                     cfp.setConversationId("request-service");
-        
+                                stil=Preferences.WAKE_HARD;//DEBUG
                                     cfp.setContent(String.valueOf(stil));
                                     
                                     addBehaviour(new AgentInitiatorBehavior(myAgent, cfp));

@@ -21,6 +21,7 @@ import java.util.Vector;
  */
 public class AgentInitiatorBehavior extends ContractNetInitiator {
     private int wakeUpStyle=-1;
+    private int accepted=0;
     
     public AgentInitiatorBehavior(Agent a,  ACLMessage cfp) {
         super(a, cfp);
@@ -28,8 +29,16 @@ public class AgentInitiatorBehavior extends ContractNetInitiator {
 
     protected void handlePropose(ACLMessage propose, Vector v) {
         System.out.println("Agent " + propose.getSender().getName() + " proposed " + propose.getContent());
-        Enumeration e = v.elements();
-        int accepted = 0;
+        ACLMessage reply = propose.createReply();
+        if (accepted==0){
+            System.out.println("I accept Agent's " + propose.getSender().getName() + " proposal ");
+            reply.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+        }else{
+            System.out.println("I reject Agent's " + propose.getSender().getName() + " proposal ");
+            reply.setPerformative(ACLMessage.REJECT_PROPOSAL);
+        }
+        accepted++;
+        v.add(reply);
     }
 
     protected void handleRefuse(ACLMessage refuse) {
@@ -48,6 +57,8 @@ public class AgentInitiatorBehavior extends ContractNetInitiator {
 
     protected void handleAllResponses(Vector responses, Vector acceptances) {
         System.out.println("Handle Responses: " + responses.size() + " responses " + responses.toString());
+        Enumeration e = responses.elements();
+
     }
 
     @Override

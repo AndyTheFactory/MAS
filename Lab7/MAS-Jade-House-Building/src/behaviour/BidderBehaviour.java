@@ -23,18 +23,20 @@ import my.ContractorAgent;
 public class BidderBehaviour extends ContractNetResponder {
 
     public BidderBehaviour(Agent a) {
+        /*
         super(a, MessageTemplate.and(
-                MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET),
-                MessageTemplate.MatchPerformative(ACLMessage.CFP)
-        )
+                    MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET),
+                    MessageTemplate.MatchPerformative(ACLMessage.CFP)
+                )
         );
+        */
+        super(a,null);
     }
 
     protected ACLMessage handleCfp(ACLMessage cfp) throws NotUnderstoodException, RefuseException {
         System.out.println("Agent " + myAgent.getLocalName() + ": CFP received from " + cfp.getSender().getName() + ". Action is " + cfp.getContent());
         ContractorAgent agent=(ContractorAgent)myAgent;
-        String[] content=cfp.getContent().split("\n");
-        int proposal = Integer.parseInt(content[0]);
+        int proposal = Integer.parseInt(cfp.getContent());
         String serviceName=cfp.getConversationId();
         int cost=agent.getCost(serviceName);
         
@@ -47,9 +49,9 @@ public class BidderBehaviour extends ContractNetResponder {
             propose.setContent(String.valueOf(proposal));
             
             ContractingStatus status=agent.getContractingStatus(serviceName);
-            
-            status.updatePhase(ContractingStatus.ContractingPhase.NEGOTIATING);
-            
+            status.setPartner(cfp.getSender());
+            status.updateProposedPrices(proposal, proposal);
+            status.updatePhase(ContractingStatus.ContractingPhase.CONTRACTING);
             
             return propose;
         } else {
@@ -64,24 +66,22 @@ public class BidderBehaviour extends ContractNetResponder {
         System.out.println("Agent " + myAgent.getLocalName() + ": Proposal accepted");
 
         ContractorAgent agent=(ContractorAgent)myAgent;
-        String[] content=cfp.getContent().split("\n");
-        int proposal = Integer.parseInt(content[0]);
+        int proposal = Integer.parseInt(cfp.getContent());
         String serviceName=cfp.getConversationId();
         
         ACLMessage inform = accept.createReply();
 	inform.setPerformative(ACLMessage.INFORM);
         ContractingStatus status=agent.getContractingStatus(serviceName);
-
-        status.updatePhase(ContractingStatus.ContractingPhase.DONE);
-            
+        status.setPartner(cfp.getSender());
+        status.updatePhase(ContractingStatus.ContractingPhase.NEGOTIATING);
+        inform.setContent(String.valueOf(status.getMyLastPrice()));
         return inform;        
     }
 
     protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {
         System.out.println("Agent " + myAgent.getLocalName() + ": Proposal rejected");
         ContractorAgent agent=(ContractorAgent)myAgent;
-        String[] content=cfp.getContent().split("\n");
-        int proposal = Integer.parseInt(content[0]);
+        int proposal = Integer.parseInt(cfp.getContent());
         String serviceName=cfp.getConversationId();
         
         ContractingStatus status=agent.getContractingStatus(serviceName);

@@ -179,4 +179,7 @@ public class ContractingStatus
 	{
 		return partnerProposedPrice;
 	}
+        public ContractingPhase getContractingPhase(){
+            return contractingPhase;
+        }
 }

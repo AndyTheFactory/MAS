@@ -34,15 +34,16 @@ public class BidderBehaviour extends ContractNetResponder {
     }
 
     protected ACLMessage handleCfp(ACLMessage cfp) throws NotUnderstoodException, RefuseException {
-        System.out.println("Agent " + myAgent.getLocalName() + ": CFP received from " + cfp.getSender().getName() + ". Action is " + cfp.getContent());
         ContractorAgent agent=(ContractorAgent)myAgent;
         int proposal = Integer.parseInt(cfp.getContent());
         String serviceName=cfp.getConversationId();
         int cost=agent.getCost(serviceName);
+
+        System.out.println("Agent " + myAgent.getLocalName() + ": Proposal "+proposal+" received from " + cfp.getSender().getName() + " for  `" + serviceName+ "`");
         
         if (proposal > cost) {
             // We provide a proposal
-            System.out.println("Agent " + myAgent.getLocalName() + ": Proposing " + proposal);
+            System.out.println("Agent " + myAgent.getLocalName() + ": Proposing " + proposal+ " for `"+serviceName+"`");
             ACLMessage propose = cfp.createReply();
             propose.setPerformative(ACLMessage.PROPOSE);
             //propose.setConversationId(cfp.getConversationId());
@@ -56,19 +57,20 @@ public class BidderBehaviour extends ContractNetResponder {
             return propose;
         } else {
             // We refuse to provide a proposal
-            System.out.println("Agent " + myAgent.getLocalName() + ": Refuse");
+            System.out.println("Agent " + myAgent.getLocalName() + ": Refuses "+proposal+" proposal for "+serviceName);
             throw new RefuseException("evaluation-failed");
         }
     }
 
     @Override
     protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) throws FailureException {
-        System.out.println("Agent " + myAgent.getLocalName() + ": Proposal accepted");
 
         ContractorAgent agent=(ContractorAgent)myAgent;
         int proposal = Integer.parseInt(cfp.getContent());
         String serviceName=cfp.getConversationId();
         
+        System.out.println("Agent " + myAgent.getLocalName() + ": Proposal "+proposal+" accepted for `"+serviceName+"`");
+
         ACLMessage inform = accept.createReply();
 	inform.setPerformative(ACLMessage.INFORM);
         ContractingStatus status=agent.getContractingStatus(serviceName);

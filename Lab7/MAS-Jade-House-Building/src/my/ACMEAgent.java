@@ -58,7 +58,7 @@ public class ACMEAgent extends Agent {
         for (String item : items.keySet()) {
             // create item information
             ArrayList<ContractingStatus> st=new ArrayList<>();
-            st.add(new ContractingStatus(item, items.get(item));
+            st.add(new ContractingStatus(item, items.get(item)));
             statuses.put(item, st);
             
             potentialContractors.put(item, new HashSet<>());
@@ -175,7 +175,7 @@ public class ACMEAgent extends Agent {
     public void makeMonotonic(String serviceName, int price){
         ContractingStatus status = getContractingStatus(serviceName);
         
-        if (status.getContractingPhase()<>ContractingStatus.ContractingPhase.NEGOTIATING) {
+        if (status.getContractingPhase()!=ContractingStatus.ContractingPhase.NEGOTIATING) {
             Log.log(this, String.format("<%s> there are no negociations in progress...", serviceName));
             return;
         }

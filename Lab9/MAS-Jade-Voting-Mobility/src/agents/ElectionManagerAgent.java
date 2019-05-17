@@ -1,5 +1,6 @@
 package agents;
 
+import behaviours.ElectionManagerReps;
 import jade.core.Agent;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
@@ -39,6 +40,8 @@ public class ElectionManagerAgent extends Agent
 		{
 			fe.printStackTrace();
 		}
+                
+                addBehaviour(new ElectionManagerReps(this, null));
 	}
 	
 	@Override

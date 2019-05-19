@@ -1,8 +1,13 @@
 package agents;
 
 import behaviours.RegionRepInitiator;
+import behaviours.RegionRepListener;
+import behaviours.VoteCollectorInitiator;
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.ContainerID;
+import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -10,9 +15,16 @@ import jade.domain.FIPAAgentManagement.SearchConstraints;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+import jade.lang.acl.UnreadableException;
+import jade.proto.AchieveREInitiator;
 import jade.proto.SubscriptionInitiator;
 import jade.util.leap.Iterator;
 import java.util.Date;
+import java.util.Enumeration;
+import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import platform.Log;
 import platform.VoteReader;
 import platform.VoteResult;
@@ -38,6 +50,9 @@ public class RegionRepAgent extends Agent {
     String regionVoteKey;
 
     VoteResult voteResult;
+    
+    Boolean voteSent=false; 
+    Boolean hasCalledColector=false;
 
     @Override
     protected void setup() {
@@ -97,6 +112,19 @@ public class RegionRepAgent extends Agent {
                 }
             }
         });
+
+        DFAgentDescription dfd = new DFAgentDescription();
+        dfd.setName(getAID());
+        ServiceDescription sd = new ServiceDescription();
+        sd.setType(ServiceType.REGION_REP);
+        sd.setName("region-rep");
+        dfd.addServices(sd);
+        try {
+            DFService.register(this, dfd);
+        } catch (FIPAException fe) {
+            fe.printStackTrace();
+        }
+        this.addBehaviour(new RegionRepListener(this, null));
     }
 
     /**
@@ -105,19 +133,71 @@ public class RegionRepAgent extends Agent {
      */
     protected void onDiscoveryCompleted() {
         // TODO: add the RequestInitiator behavior for asking the VoteCollectorAgent to come collect the results
-        ACLMessage msg = new ACLMessage(ACLMessage.CFP);
+        try {
+            Thread.sleep((long)(Math.random() * 5000));
+        } catch (InterruptedException ex) {
+            Logger.getLogger(RegionRepAgent.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        addBehaviour( 
+                new TickerBehaviour(this,10000) {
+                    protected void onTick() {
+                        askForVoteCollector();
+                        if (voteSent) block();
+                    }
+                }
+        );
+
+    }
+    public void askForVoteCollector()
+    {
+        if (voteSent || hasCalledColector) //already sent votes
+            return;
+        
+        
+        ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
         msg.setProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET);
         // We want to receive a reply in 10 secs
         msg.setReplyByDate(new Date(System.currentTimeMillis() + 30000));
-        msg.setConversationId("ask-collector");
+        msg.setConversationId(RequestType.ASK_VOTE_COLLECTOR);
         msg.setContent(regionVoteKey); //Price <CR> Request #
-
+        msg.setReplyWith(RequestType.ASK_VOTE_COLLECTOR + System.currentTimeMillis());
         msg.addReceiver(electionManagerAgent);
 
-        Log.log(this, String.format("Calling the collector for Region "+regionVoteKey));
+        Log.log(this, String.format("Agent %s Region <%s> calling for Collector ",this.getName(), regionVoteKey));
+        
+        //this.send(msg);
+        
+        hasCalledColector=true;
+        
+        addBehaviour(new AchieveREInitiator(this, msg){
+            @Override
+            protected void handleAllResponses(Vector responses) {
+                hasCalledColector=false;
+                if (responses.size() <= 0) {
+                    //No responses or timeout
+                    //go home
+                    System.out.println(this.myAgent.getName() + " Received no response ");
+                } else {
+                    //
+                    Enumeration e = responses.elements();
+                    while (e.hasMoreElements()) {
+                        ACLMessage msg = (ACLMessage) e.nextElement();
+                        if (msg.getPerformative()==ACLMessage.AGREE){
+                            System.out.println(myAgent.getName()+" - Vote collector will come.. can't wait !");
+                        }else{
+                            System.out.println(myAgent.getName()+" - Vote collector is busy :( will call him later !");
 
-        addBehaviour(new RegionRepInitiator(this, msg));
+                        }
+                    }
 
+                }
+                
+            }            
+        });
+        //this.addBehaviour(new RegionRepListener(this, null));
+
+        //addBehaviour(new RegionRepInitiator(this, msg));
+        
     }
 
     /**
@@ -144,5 +224,14 @@ public class RegionRepAgent extends Agent {
     protected void takeDown() {
         // Printout a dismissal message
         Log.log(this, "terminating.");
+    }
+    public String getRegionVoteKey(){
+        return regionVoteKey;
+    }
+    public VoteResult getVoteResult(){
+        return voteResult;
+    }
+    public void setVotesSent(){
+        this.voteSent=true;
     }
 }

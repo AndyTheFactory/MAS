@@ -12,26 +12,18 @@ import java.util.Vector;
 
 /**
  *
- * @author Dell
+ * @author andrei
  */
-public class RegionRepInitiator  extends ContractNetInitiator {
-    
-    public RegionRepInitiator(Agent a, ACLMessage cfp) {
+public class ElectionManagerInitiator extends ContractNetInitiator {
+    ACLMessage cfp2;
+    public ElectionManagerInitiator(Agent a, ACLMessage cfp) {
         super(a, cfp);
     }
     @Override
     protected void handleAllResponses(Vector responses, Vector acceptances) {
         System.out.println(this.myAgent.getName()+" Received unhandled responses " + responses);
         
-    }
-    
-    @Override
-    protected void handleAllResultNotifications(Vector resultNotifications){
-        System.out.println(this.myAgent.getName()+" Received Notification responses " + resultNotifications);
-    }
-    @Override
-    protected void handleOutOfSequence(ACLMessage msg){
-        System.out.println(this.myAgent.getName()+" Received out-of-seq responses " + msg);
+        
         
     }
     

@@ -5,6 +5,8 @@ import behaviours.ElectionManagerListener;
 import behaviours.ElectionManagerResultsListener;
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -13,11 +15,18 @@ import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.proto.AchieveREInitiator;
+import java.util.ArrayList;
+import java.util.Collections;
+import static java.util.Collections.reverseOrder;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Vector;
+import platform.Ballot;
 import platform.Log;
 import platform.VoteResult;
 
@@ -32,6 +41,10 @@ public class ElectionManagerAgent extends Agent {
     private static final long serialVersionUID = -3397689918969697329L;
     
     Map<String,VoteResult> votes=new HashMap<>();
+    
+    final static int SEATS_PER_REGION=3;
+    final static int CANDIDATES_PER_REGION=5;
+    
 
     @Override
     public void setup() {
@@ -55,6 +68,14 @@ public class ElectionManagerAgent extends Agent {
 
         addBehaviour(new ElectionManagerListener(this, null));
         addBehaviour(new ElectionManagerResultsListener(this, null));
+        
+        addBehaviour(new TickerBehaviour(this, 60000) {
+            @Override
+            protected void onTick() {
+                ((ElectionManagerAgent)this.myAgent).printVotes();
+            }
+        });
+        
     }
 
     @Override
@@ -125,5 +146,79 @@ public class ElectionManagerAgent extends Agent {
     public void addVotes(String regionVoteKey,VoteResult vote){
         this.votes.put(regionVoteKey, vote);
         System.out.println("Got votes for:"+regionVoteKey);
+    }
+    public void printVotes(){
+        System.out.println("=========================");
+        System.out.println("Election Manager Report: ");
+        System.out.println("     got Votes from:");
+        for(Map.Entry<String, VoteResult> entry : this.votes.entrySet()) {
+            System.out.println("         "+entry.getKey());
+            System.out.println("           Winners: "+getWinners(entry.getKey()));
+        }
+        System.out.println("=========================");
+        
+    }
+    int getDroopQuota(String region){
+        VoteResult r=votes.get(region);
+        if (r==null){
+            return Math.floorDiv(250, SEATS_PER_REGION+1)+1;
+        }else{
+            int total=0;
+            for(Ballot b:r.getBallots()){
+                total+=b.getCount();
+            }
+            return Math.floorDiv(total, SEATS_PER_REGION+1)+1;
+        }
+                    
+    }
+    String getWinners(String region){
+        StringBuilder res=new StringBuilder();
+        int droop=getDroopQuota(region);
+        VoteResult r=votes.get(region);
+
+        Map<String,Integer> candidates=new HashMap<>();
+        
+        List<String> clist=r.getBallots().get(0).getCandidates();
+        
+        for(String c:clist){
+            candidates.put(c, 0);
+        }
+        //Round 1
+        for(Ballot b:r.getBallots()){
+            int total=b.getCount();
+            String c=b.getCandidates().get(0);
+            candidates.put(c, total);
+        }
+        Map<String,Integer> cand_orig=new HashMap<>(candidates);
+        
+        while(res.length()<CANDIDATES_PER_REGION){
+            
+            Entry<String,Integer> ebest=null,eworst=null;
+            for(Entry<String,Integer>e:candidates.entrySet()){
+                if (ebest==null || ebest.getValue()<e.getValue())
+                    ebest=e;
+                if (eworst==null || eworst.getValue()>e.getValue())
+                    eworst=e;
+            }
+            double transfer=0;
+            String from_region="";
+            if (ebest.getValue()>=droop){
+                //elected
+                res.append(ebest.getKey()+",");
+                transfer=(ebest.getValue()-droop)/ebest.getValue();
+                from_region=ebest.getKey();
+                
+            }else{
+                candidates.remove(eworst);
+                transfer=eworst.getValue();
+                from_region=eworst.getKey();
+            }
+            for(Ballot b:r.getBallots()){
+                List<String> csecond=b.getCandidates();
+                
+            }
+            
+        }
+        return res.toString();
     }
 }

@@ -32,7 +32,11 @@ public class RegionRepListener extends AchieveREResponder {
 
     public RegionRepListener(Agent a, MessageTemplate mt) {
         
-        super(a, MessageTemplate.MatchConversationId(RequestType.ASK_VOTES_FROM_REP));
+        super(a, MessageTemplate.or(
+                    MessageTemplate.MatchConversationId(RequestType.ASK_VOTES_FROM_REP),
+                    MessageTemplate.MatchConversationId(RequestType.CONFIRM_COLLECTED)
+            )
+        );
     }
     @Override
     protected ACLMessage handleRequest(ACLMessage cfp) throws NotUnderstoodException, RefuseException {
@@ -40,8 +44,13 @@ public class RegionRepListener extends AchieveREResponder {
         String regionVoteKey = cfp.getContent();
 
         ACLMessage reply = cfp.createReply();
-
         RegionRepAgent regionrep = (RegionRepAgent) this.myAgent;
+        if (cfp.getConversationId().equals(RequestType.CONFIRM_COLLECTED)){
+            
+            regionrep.setVotesSent();
+            return null;
+        }
+
         
         if (regionVoteKey.equals(regionrep.getRegionVoteKey())) {
             System.out.println("Agent " + myAgent.getLocalName() + ": sending Votes to " + cfp.getSender().getName());
@@ -49,7 +58,6 @@ public class RegionRepListener extends AchieveREResponder {
             try {
                 reply.setContent(regionVoteKey);
                 reply.setContentObject(regionrep.getVoteResult());
-                regionrep.setVotesSent();
             } catch (IOException ex) {
                 Logger.getLogger(VoteCollectorListener.class.getName()).log(Level.SEVERE, null, ex);
             }

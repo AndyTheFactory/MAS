@@ -15,7 +15,8 @@ public class RequestType {
     public static String REPORT_VOTES="report-votes";
     public static String SEND_VOTE_COLLECTOR="send-vote-collector";
     public static String ASK_VOTES_FROM_REP="ask-vote-from-rep";
-    
+    public static String CONFIRM_COLLECTED="Collected votes from Region";
+   
 }
 
 

@@ -5,7 +5,9 @@
  */
 package behaviours;
 
+import agents.InformMessages;
 import agents.Regions;
+import agents.RequestType;
 import agents.VoteCollectorAgent;
 import jade.core.Agent;
 import jade.core.ContainerID;
@@ -49,6 +51,12 @@ public class VoteCollectorInitiator extends AchieveREInitiator {
                         VoteResult votes = (VoteResult) msg.getContentObject();
                         votecollector.setVoteResults(regionVoteKey, votes);
                         System.out.println(this.myAgent.getName() + " Got votes for region "+regionVoteKey+" : " + votes);
+                        
+                        ACLMessage confirmMsg=new ACLMessage(ACLMessage.CONFIRM);
+                        confirmMsg.setConversationId(RequestType.CONFIRM_COLLECTED);
+                        confirmMsg.setContent(regionVoteKey);
+                        confirmMsg.addReceiver(msg.getSender());
+                        votecollector.send(confirmMsg);
                         
                     } catch (UnreadableException ex) {
                         Logger.getLogger(VoteCollectorInitiator.class.getName()).log(Level.SEVERE, null, ex);

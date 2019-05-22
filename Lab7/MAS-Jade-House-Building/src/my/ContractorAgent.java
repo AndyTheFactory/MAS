@@ -1,6 +1,7 @@
 package my;
 
 import behaviour.BidderBehaviour;
+import behaviour.BidderNegociationBehaviour;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,6 +27,7 @@ public class ContractorAgent extends Agent {
      */
     Map<String, ContractingStatus> statuses = new HashMap<>();
     Map<String, Integer> costs = new HashMap<>();
+    Map<String, Integer> monoton = new HashMap<>();
 
     @SuppressWarnings("unchecked")
     @Override
@@ -45,6 +47,7 @@ public class ContractorAgent extends Agent {
 
             statuses.put(item, new ContractingStatus(item, providedItems.get(item)));
             costs.put(item, providedItems.get(item));
+            monoton.put(item, 2*providedItems.get(item));
         }
         try {
             DFService.register(this, dfd);
@@ -54,6 +57,7 @@ public class ContractorAgent extends Agent {
         Log.log(this, "Successfully registered:", dfd);
         
         addBehaviour(new BidderBehaviour(this));
+        addBehaviour(new BidderNegociationBehaviour(this,null));
     }
 
     public int getCost(String serviceName) {
@@ -61,6 +65,26 @@ public class ContractorAgent extends Agent {
             throw new IllegalArgumentException("Unknown Service Name: " + serviceName);
         }
         return costs.get(serviceName);
+    }
+    
+    public int getMonotonicCost(String serviceName) {
+        if (!monoton.containsKey(serviceName)) {
+            throw new IllegalArgumentException("Unknown Service Name: " + serviceName);
+        }
+        return monoton.get(serviceName);
+    }
+    public void doRoundMonotonic(String serviceName) {
+        if (!monoton.containsKey(serviceName)) {
+            throw new IllegalArgumentException("Unknown Service Name: " + serviceName);
+        }
+        
+        int lastprice= monoton.get(serviceName);
+        int increment=Integer.divideUnsigned(costs.get(serviceName),5+(int)Math.round(Math.random()*10));
+        lastprice-=increment;
+        
+        monoton.put(serviceName,lastprice);
+        
+        
     }
 
     public ContractingStatus getContractingStatus(String serviceName) {

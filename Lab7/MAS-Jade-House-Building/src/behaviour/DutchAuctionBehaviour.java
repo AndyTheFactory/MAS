@@ -71,6 +71,7 @@ public class DutchAuctionBehaviour extends ContractNetInitiator {
                 acceptances.add(accept2);
                 
             }
+            agent.makeMonotonic(serviceName);
 
         }else{
             System.out.println("No real bidders for "+serviceName);

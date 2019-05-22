@@ -1,5 +1,6 @@
 package my;
 
+import behaviour.AcmeNegociationBehaviour;
 import behaviour.DutchAuctionBehaviour;
 import behaviour.StatusReportBehaviour;
 import java.util.HashMap;
@@ -43,6 +44,7 @@ public class ACMEAgent extends Agent {
      */
     Map<String, Set<AID>> potentialContractors = new HashMap<>();
     Map<String, Integer> bugets = new HashMap<>();
+    Map<String, Integer> bugets_monoton = new HashMap<>();
 
     ArrayList<String> serviceNames = new ArrayList<>();
 
@@ -64,6 +66,7 @@ public class ACMEAgent extends Agent {
             potentialContractors.put(item, new HashSet<>());
             serviceNames.add(item);
             bugets.put(item, items.get(item));
+            bugets_monoton.put(item, Integer.divideUnsigned(items.get(item),2));
 
             // search available agents
             DFAgentDescription template = new DFAgentDescription();
@@ -170,9 +173,7 @@ public class ACMEAgent extends Agent {
 
     }
     public void makeMonotonic(String serviceName){
-        makeMonotonic(serviceName,0);
-    }
-    public void makeMonotonic(String serviceName, int price){
+
         ContractingStatus status = getContractingStatus(serviceName);
         
         if (status.getContractingPhase()!=ContractingStatus.ContractingPhase.NEGOTIATING) {
@@ -180,11 +181,19 @@ public class ACMEAgent extends Agent {
             return;
         }
         
-        if (price>0){
-            
-        }else{
-            
+        ACLMessage msg = new ACLMessage(ACLMessage.CFP);
+        for (ContractingStatus s : getContractingStatusList(serviceName)) {
+            if (s.getContractingPhase()==ContractingStatus.ContractingPhase.NEGOTIATING)
+                msg.addReceiver(s.getPartner());
         }
+        msg.setProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET);
+        // We want to receive a reply in 10 secs
+        msg.setReplyByDate(new Date(System.currentTimeMillis() + 30000));
+        msg.setConversationId(serviceName);
+        int newPrice= bugets_monoton.get(serviceName);
+        msg.setContent(String.valueOf(newPrice)); //Price <CR> Request #
+
+        addBehaviour(new AcmeNegociationBehaviour(this, msg, serviceName,status));
         
         
     }
@@ -231,11 +240,19 @@ public class ACMEAgent extends Agent {
             }
             if (status.getContractingPhase() == ContractingStatus.ContractingPhase.NEGOTIATING) {
                 sb.append("    negociating with '" + status.getPartner().getLocalName() + "' prices:\n");
-                sb.append("                                       Mine " + status.getMyLastPrice() + "\n");
-                sb.append("                                       Theirs " + status.getPartnerLastPrice() + "\n");
+                sb.append("                                       myprice " + bugets_monoton.get(s) + "\n");
             }
             sb.append("\n");
         }
         return sb.toString();
+    }
+    public void  monotonicRound(String serviceName){
+        
+        int lastprice= bugets_monoton.get(serviceName);
+        int increment=Integer.divideUnsigned(bugets.get(serviceName),5+(int)Math.round(Math.random()*10));
+        lastprice+=increment;
+        
+        bugets_monoton.put(serviceName,lastprice);
+        
     }
 }

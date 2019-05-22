@@ -1,1 +1,1 @@
-( ap-description  :name "ACME" :ap-services (set ( ap-service  :name fipa.mts.mtp.http.std :type fipa.mts.mtp.http.std :addresses (sequence http://MANIAC:7778/acc))))
+( ap-description  :name "ACME" :ap-services (set ( ap-service  :name fipa.mts.mtp.http.std :type fipa.mts.mtp.http.std :addresses (sequence http://SNOOPY.infodata.com.ro:7778/acc))))
